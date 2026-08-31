@@ -161,9 +161,9 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
           type="button"
           onClick={handleInstantDemo}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 px-3.5 py-1.5 text-xs font-bold text-white transition-all shadow-glow cursor-pointer disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 px-5 py-2.5 text-xs font-bold text-white transition-all shadow-glow cursor-pointer disabled:opacity-50"
         >
-          <Zap size={13} className="fill-white" />
+          <Zap size={14} className="fill-white" />
           <span>Launch Demo Workspace</span>
         </button>
       </header>
@@ -430,7 +430,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 py-3 text-xs font-bold text-white transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 shadow-glow mt-2"
+                className="w-full rounded-2xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 py-3.5 px-6 text-sm font-bold text-white transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 shadow-glow mt-3 active:scale-[0.98]"
               >
                 <span>
                   {loading
@@ -441,7 +441,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
                     ? 'Create Workspace Account'
                     : 'Send Reset Link'}
                 </span>
-                {!loading && <ArrowRight size={14} />}
+                {!loading && <ArrowRight size={16} />}
               </button>
 
               {mode === 'forgot' && (

@@ -144,15 +144,15 @@ export default function ReviewGroupPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           {isImage && (
             <Button
               variant="outline"
-              size="sm"
+              size="md"
               onClick={() => setInspectImageOpen(true)}
               className="text-xs"
             >
-              <Sliders size={13} />
+              <Sliders size={14} />
               <span>Split Inspector</span>
             </Button>
           )}
@@ -160,33 +160,33 @@ export default function ReviewGroupPage() {
           {isDoc && group.diffData && (
             <Button
               variant="outline"
-              size="sm"
+              size="md"
               onClick={() => setDocDiffOpen(true)}
               className="text-xs"
             >
-              <GitCompare size={13} />
+              <GitCompare size={14} />
               <span>Document Diff</span>
             </Button>
           )}
 
           <Button
-            size="sm"
+            size="md"
             onClick={handleKeepMasterOnly}
             disabled={quarantineMutation.isPending}
-            className="bg-emerald-500 hover:bg-emerald-400 text-[#0f2419] font-bold text-xs shadow-sm"
+            className="bg-emerald-400 hover:bg-emerald-300 text-[#091a12] font-black text-xs shadow-md shadow-emerald-500/20"
           >
-            <Check size={14} strokeWidth={2.5} />
+            <Check size={15} strokeWidth={2.5} />
             <span>Keep Master Only</span>
           </Button>
 
           <Button
             variant="danger"
-            size="sm"
+            size="md"
             disabled={!selectedIds.length || quarantineMutation.isPending}
             onClick={() => quarantineMutation.mutate(selectedIds)}
-            className="text-xs font-semibold"
+            className="text-xs font-bold"
           >
-            <Archive size={13} />
+            <Archive size={14} />
             <span>Quarantine Selected ({selectedIds.length})</span>
           </Button>
         </div>

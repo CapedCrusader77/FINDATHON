@@ -28,10 +28,10 @@ export function Button({
           'bg-brand-500/10 text-brand-300 border border-brand-500/20 hover:bg-brand-500/20',
         variant === 'danger' &&
           'bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 border border-rose-500/30 hover:text-rose-200',
-        size === 'xs' && 'h-8 rounded-lg px-3 text-xs font-semibold',
-        size === 'sm' && 'h-9.5 rounded-xl px-4 text-xs font-bold',
-        size === 'md' && 'h-11 rounded-xl px-5 text-sm font-bold',
-        size === 'lg' && 'h-12.5 rounded-xl px-7 text-sm font-bold shadow-sm',
+        size === 'xs' && 'h-9 rounded-xl px-3.5 text-xs font-semibold',
+        size === 'sm' && 'h-11 rounded-xl px-5 text-sm font-bold',
+        size === 'md' && 'h-12.5 rounded-xl px-6 text-sm font-bold',
+        size === 'lg' && 'h-14 rounded-2xl px-8 text-base font-bold shadow-md',
         className
       )}
       {...props}
