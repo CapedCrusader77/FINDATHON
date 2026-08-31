@@ -10,6 +10,7 @@ import {
   EyeOff,
   Zap,
   ArrowRight,
+  ArrowDown,
   CheckCircle2,
   ShieldCheck,
   Sparkles,
@@ -35,9 +36,6 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
   const { login, signup, forgotPassword } = useAuth()
   const navigate = useNavigate()
 
-  // Navigation state: 'auth' or 'about'
-  const [activeView, setActiveView] = useState<'auth' | 'about'>('auth')
-
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>('signin')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -52,7 +50,6 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
 
   // Interactive About Showcase State
   const [selectedDemoIndex, setSelectedDemoIndex] = useState(0)
-  const [simulatedSlider, setSimulatedSlider] = useState(50)
   const [activeStageTab, setActiveStageTab] = useState(0)
   const [sandboxResolved, setSandboxResolved] = useState(false)
 
@@ -203,6 +200,17 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
     onAuthenticated ? onAuthenticated() : navigate('/')
   }
 
+  const scrollToAbout = () => {
+    const el = document.getElementById('about-showcase')
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -267,8 +275,8 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
         }}
       />
 
-      {/* ── 3. Top Navigation Header ── */}
-      <header className="relative z-20 flex h-20 items-center justify-between px-6 sm:px-12 border-b border-[#1d202e] bg-[#090a0f]/80 backdrop-blur-md max-w-7xl w-full mx-auto">
+      {/* ── 3. Top Sticky Navigation Header ── */}
+      <header className="sticky top-0 z-30 flex h-20 items-center justify-between px-6 sm:px-12 border-b border-[#1d202e] bg-[#090a0f]/80 backdrop-blur-md max-w-7xl w-full mx-auto">
         <div className="flex items-center gap-3">
           <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-brand-500 to-indigo-600 text-white font-bold shadow-glow">
             <FolderOpen size={20} strokeWidth={2.5} />
@@ -284,60 +292,379 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
           </div>
         </div>
 
-        {/* View Switcher: Interactive About vs. Sign In */}
+        {/* Action Buttons */}
         <div className="flex items-center gap-3">
-          <div className="grid grid-cols-2 rounded-2xl border border-[#262a3c] bg-[#11131c]/90 p-1 text-xs">
-            <button
-              type="button"
-              onClick={() => setActiveView('auth')}
-              className={`rounded-xl px-4 py-2 font-bold transition-all cursor-pointer ${
-                activeView === 'auth'
-                  ? 'bg-gradient-to-r from-brand-600 to-indigo-600 text-white shadow-glow'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveView('about')}
-              className={`rounded-xl px-4 py-2 font-bold transition-all cursor-pointer ${
-                activeView === 'about'
-                  ? 'bg-gradient-to-r from-brand-600 to-indigo-600 text-white shadow-glow'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Interactive About
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={scrollToAbout}
+            className="rounded-xl border border-[#262a3c] bg-[#11131c]/90 hover:bg-[#1b1f2e] px-4 py-2 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer inline-flex items-center gap-1.5"
+          >
+            <span>About & Engine Tour</span>
+            <ArrowDown size={13} className="text-brand-400" />
+          </button>
 
           <button
             type="button"
             onClick={handleInstantDemo}
             disabled={loading}
-            className="hidden sm:inline-flex items-center gap-2 rounded-xl bg-[#1e2232] hover:bg-[#282d42] border border-[#30364e] px-4 py-2 text-xs font-bold text-white transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 px-4 py-2 text-xs font-bold text-white transition-all shadow-glow cursor-pointer disabled:opacity-50"
           >
-            <Zap size={14} className="fill-brand-400 text-brand-400" />
+            <Zap size={14} className="fill-white text-white" />
             <span>1-Click Demo</span>
           </button>
         </div>
       </header>
 
-      {/* ── 4. Main Body: Switchable between Interactive About & Auth ── */}
-      {activeView === 'about' ? (
-        <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto p-6 sm:p-10 space-y-10">
+      {/* ── 4. Main Continuous Page Stream ── */}
+      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto p-6 sm:p-10 space-y-16">
+        
+        {/* ── TOP HERO SECTION: Split-Screen Auth & Narrative ── */}
+        <section className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 items-center min-h-[calc(100vh-140px)]">
+          {/* Left Column: Product Value & Workflow Narrative */}
+          <div className="flex flex-col justify-center space-y-6 pr-0 lg:pr-6">
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-3.5 py-1 text-xs font-semibold text-brand-300 font-mono">
+                <Sparkles size={13} />
+                <span>Multi-Modal Duplicate Workstation</span>
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl font-extrabold font-display text-white tracking-tight leading-[1.15]">
+                Intelligent duplicate discovery & <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-400 to-indigo-400">safe cleanup</span>.
+              </h1>
+
+              <p className="text-sm text-slate-300 leading-relaxed max-w-xl">
+                Identifies visual image derivatives, document revisions, and exact duplicates directly on your device.
+              </p>
+            </div>
+
+            {/* 6-Step Core Workflow Strip */}
+            <div className="space-y-2 pt-2 border-t border-[#1d202e]">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                  6-Stage Intelligence Pipeline
+                </p>
+                <button
+                  type="button"
+                  onClick={scrollToAbout}
+                  className="text-[11px] font-bold text-brand-400 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Engine Tour ↓</span>
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                {[
+                  { step: '01 SCAN', desc: 'Folder ingest' },
+                  { step: '02 DETECT', desc: 'pHash & vectors' },
+                  { step: '03 EXPLAIN', desc: 'Signal diffs' },
+                  { step: '04 RECOMMEND', desc: 'Master pick' },
+                  { step: '05 REVIEW', desc: 'Side-by-side' },
+                  { step: '06 QUARANTINE', desc: '30-day bin' }
+                ].map(w => (
+                  <div key={w.step} className="rounded-xl border border-[#1f2333] bg-[#11131c]/90 p-2.5 space-y-0.5">
+                    <p className="font-mono text-[10px] font-bold text-brand-400">{w.step}</p>
+                    <p className="text-[10px] text-slate-400 leading-tight font-medium">{w.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* On-Device Privacy Guarantee Card */}
+            <div className="rounded-2xl border border-emerald-500/25 bg-emerald-950/25 p-3.5 flex items-center gap-3">
+              <ShieldCheck size={18} className="text-emerald-400 shrink-0" />
+              <div className="text-xs space-y-0.5">
+                <p className="font-bold text-emerald-300">100% Local-First Engine</p>
+                <p className="text-emerald-200/80 leading-relaxed text-[11px]">
+                  Zero cloud uploads. All analysis runs directly on your CPU/GPU.
+                </p>
+              </div>
+            </div>
+
+            {/* Scroll Down Prompt */}
+            <button
+              type="button"
+              onClick={scrollToAbout}
+              className="inline-flex items-center gap-2 text-xs font-bold text-brand-300 hover:text-brand-200 transition-colors pt-2 cursor-pointer group"
+            >
+              <span>Scroll down for interactive engine simulator</span>
+              <ArrowDown size={14} className="group-hover:translate-y-0.5 transition-transform" />
+            </button>
+          </div>
+
+          {/* Right Column: Premium Auth Card */}
+          <div className="w-full max-w-[460px] mx-auto">
+            <div className="rounded-3xl border border-[#262a3c] bg-[#11131c]/90 backdrop-blur-2xl p-7 sm:p-9 shadow-2xl space-y-6">
+              {/* Header */}
+              <div>
+                <h2 className="text-2xl font-bold font-display text-white tracking-tight">
+                  {mode === 'signin' ? 'Welcome back' : mode === 'signup' ? 'Create an account' : 'Reset password'}
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">
+                  {mode === 'signin'
+                    ? 'Sign in to access your local file intelligence workspace.'
+                    : mode === 'signup'
+                    ? 'Start scanning and organizing your duplicate files.'
+                    : 'Enter your email address to receive reset instructions.'}
+                </p>
+              </div>
+
+              {/* Error / Success Alerts */}
+              {error && (
+                <div className="rounded-xl border border-rose-500/40 bg-rose-500/15 p-3 text-xs text-rose-200 flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-rose-400 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+              {successMessage && (
+                <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/15 p-3 text-xs text-emerald-200 flex items-center gap-2">
+                  <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
+                  <span>{successMessage}</span>
+                </div>
+              )}
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-3.5">
+                {mode === 'signup' && (
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-300 block">Full Name</label>
+                    <div className="relative">
+                      <User size={14} className="absolute left-3.5 top-3.5 text-slate-500" />
+                      <input
+                        type="text"
+                        placeholder="Alex Morgan"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        className="w-full rounded-xl border border-[#262a3c] bg-[#161924] pl-10 pr-3 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-brand-500 focus:bg-[#1b1f2e] transition-colors"
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-300 block">Email Address</label>
+                  <div className="relative">
+                    <Mail size={14} className="absolute left-3.5 top-3.5 text-slate-500" />
+                    <input
+                      type="email"
+                      placeholder="alex.morgan@workspace.io"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      className="w-full rounded-xl border border-[#262a3c] bg-[#161924] pl-10 pr-3 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-brand-500 focus:bg-[#1b1f2e] transition-colors"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {mode !== 'forgot' && (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-semibold text-slate-300">Password</label>
+                      {mode === 'signin' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMode('forgot')
+                            setError(null)
+                          }}
+                          className="text-[10.5px] text-brand-400 hover:underline cursor-pointer"
+                        >
+                          Forgot password?
+                        </button>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <Lock size={14} className="absolute left-3.5 top-3.5 text-slate-500" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        className="w-full rounded-xl border border-[#262a3c] bg-[#161924] pl-10 pr-10 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-brand-500 focus:bg-[#1b1f2e] transition-colors font-mono"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        tabIndex={-1}
+                        className="absolute right-3.5 top-3 text-slate-500 hover:text-slate-300 cursor-pointer"
+                      >
+                        {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </div>
+
+                    {/* Dynamic Password Strength Indicator for Signup */}
+                    {mode === 'signup' && password && (
+                      <div className="pt-1.5 space-y-1">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="text-slate-400">Strength:</span>
+                          <span className="font-semibold text-slate-300">{passwordStrength.label}</span>
+                        </div>
+                        <div className="grid grid-cols-4 gap-1 h-1">
+                          {[1, 2, 3, 4].map(step => (
+                            <div
+                              key={step}
+                              className={`rounded-full h-full transition-all ${
+                                step <= passwordStrength.score ? passwordStrength.color : 'bg-[#262a3c]'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {mode === 'signup' && (
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-300 block">Confirm Password</label>
+                    <div className="relative">
+                      <Lock size={14} className="absolute left-3.5 top-3.5 text-slate-500" />
+                      <input
+                        type="password"
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                        className="w-full rounded-xl border border-[#262a3c] bg-[#161924] pl-10 pr-3 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-brand-500 focus:bg-[#1b1f2e] transition-colors font-mono"
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {mode === 'signin' && (
+                  <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer select-none pt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={e => setRememberMe(e.target.checked)}
+                      className="h-3.5 w-3.5 rounded border-[#262a3c] bg-[#161924] accent-brand-600 cursor-pointer"
+                    />
+                    <span>Remember this workspace session</span>
+                  </label>
+                )}
+
+                {mode === 'signup' && (
+                  <label className="flex items-start gap-2 text-[11px] text-slate-400 cursor-pointer select-none pt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={termsAccepted}
+                      onChange={e => setTermsAccepted(e.target.checked)}
+                      className="h-3.5 w-3.5 mt-0.5 rounded border-[#262a3c] bg-[#161924] accent-brand-600 cursor-pointer"
+                    />
+                    <span>I accept the Terms of Service and local privacy policy</span>
+                  </label>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full rounded-2xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 py-3.5 px-6 text-sm font-bold text-white transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 shadow-glow mt-3 active:scale-[0.98]"
+                >
+                  <span>
+                    {loading
+                      ? 'Processing...'
+                      : mode === 'signin'
+                      ? 'Sign In to Workspace'
+                      : mode === 'signup'
+                      ? 'Create Workspace Account'
+                      : 'Send Reset Link'}
+                  </span>
+                  {!loading && <ArrowRight size={16} />}
+                </button>
+
+                {mode === 'forgot' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('signin')
+                      setError(null)
+                    }}
+                    className="w-full text-center text-xs text-brand-400 hover:underline pt-1 block cursor-pointer"
+                  >
+                    ← Back to Sign In
+                  </button>
+                )}
+              </form>
+
+              {/* Quick Test Profiles for Evaluators */}
+              {mode === 'signin' && (
+                <div className="pt-3 border-t border-[#222636] space-y-2">
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-center font-mono">
+                    Quick Test Credentials
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {quickUsers.map(u => (
+                      <button
+                        key={u.email}
+                        type="button"
+                        onClick={() => handleQuickSelect(u)}
+                        className="flex items-center gap-2 rounded-xl border border-[#262a3c] bg-[#161924] p-2 text-left hover:border-brand-500/50 hover:bg-[#1b1f2e] transition-all cursor-pointer"
+                      >
+                        <div className="grid h-6 w-6 shrink-0 place-items-center rounded bg-brand-500/20 text-brand-300 font-mono font-bold text-[10px]">
+                          {u.initials}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-bold text-white truncate">{u.name}</p>
+                          <p className="text-[9px] text-slate-400 truncate">{u.role}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Mode Switcher Toggle */}
+              <div className="pt-1 text-center text-xs text-slate-400 border-t border-[#222636]">
+                {mode === 'signin' ? (
+                  <p>
+                    Don't have a workspace?{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('signup')
+                        setError(null)
+                        setSuccessMessage(null)
+                      }}
+                      className="font-bold text-brand-400 hover:underline ml-1 cursor-pointer"
+                    >
+                      Sign up now
+                    </button>
+                  </p>
+                ) : (
+                  <p>
+                    Already have an account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('signin')
+                        setError(null)
+                        setSuccessMessage(null)
+                      }}
+                      className="font-bold text-brand-400 hover:underline ml-1 cursor-pointer"
+                    >
+                      Sign in
+                    </button>
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── ABOUT & INTERACTIVE ENGINE SECTION (Directly below hero as you scroll) ── */}
+        <section id="about-showcase" className="space-y-10 pt-10 border-t border-[#1f2333]/80 scroll-mt-24">
           {/* Header Banner */}
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-4 py-1.5 text-xs font-bold text-brand-300 font-mono tracking-wide">
               <Sparkles size={14} />
               <span>How FileTwin Works · Interactive Engine Showcase</span>
             </div>
-            <h1 className="text-3xl sm:text-5xl font-extrabold font-display text-white tracking-tight leading-tight">
+            <h2 className="text-3xl sm:text-5xl font-extrabold font-display text-white tracking-tight leading-tight">
               Not just matching filenames. <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-indigo-300 to-cyan-400">
                 Understanding what’s inside your files.
               </span>
-            </h1>
+            </h2>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl mx-auto">
               Traditional tools say <em>"These files have different names, so they’re different."</em> FileTwin looks inside image pixels and document paragraphs to determine: <em>"These are all versions of the same file."</em>
             </p>
@@ -350,9 +677,9 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
                 <span className="text-[10px] font-bold uppercase tracking-wider text-brand-400 font-mono">
                   Interactive Simulator
                 </span>
-                <h2 className="text-lg font-bold text-white mt-0.5">
+                <h3 className="text-lg font-bold text-white mt-0.5">
                   Live Duplicate Detection & Master Selection
-                </h2>
+                </h3>
               </div>
 
               {/* Sample Pair Tabs */}
@@ -480,9 +807,9 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
           {/* 4-Stage Engine Pipeline Architecture */}
           <div className="space-y-4">
             <div className="text-center space-y-1">
-              <h2 className="text-2xl font-bold font-display text-white">
+              <h3 className="text-2xl font-bold font-display text-white">
                 The 4-Stage Intelligence Pipeline
-              </h2>
+              </h3>
               <p className="text-xs text-slate-400">
                 Click any stage below to inspect the mathematical and cryptographic operations performed locally on your device.
               </p>
@@ -511,7 +838,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
                         <Icon size={16} />
                       </div>
                     </div>
-                    <h3 className="text-sm font-bold text-white">{stage.title}</h3>
+                    <h4 className="text-sm font-bold text-white">{stage.title}</h4>
                     <p className="text-[11px] font-mono text-slate-400 mt-0.5">{stage.subtitle}</p>
                     <p className="text-xs text-slate-300 mt-3 leading-relaxed border-t border-[#1f2333] pt-2.5">
                       {stage.details}
@@ -522,7 +849,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
             </div>
           </div>
 
-          {/* Call to Action Bar */}
+          {/* Call to Action Bar (Back to Top / Demo) */}
           <div className="rounded-3xl border border-brand-500/30 bg-gradient-to-r from-brand-950/40 via-[#11131c] to-indigo-950/40 p-8 text-center sm:flex sm:items-center sm:justify-between gap-6 shadow-2xl">
             <div className="text-left space-y-1">
               <h3 className="text-xl font-bold text-white font-display">
@@ -535,10 +862,10 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
             <div className="mt-4 sm:mt-0 flex items-center gap-3 shrink-0">
               <button
                 type="button"
-                onClick={() => setActiveView('auth')}
+                onClick={scrollToTop}
                 className="rounded-2xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 px-6 py-3.5 text-sm font-bold text-white transition-all shadow-glow cursor-pointer"
               >
-                <span>Sign In to Workspace</span>
+                <span>Back to Sign In ↑</span>
               </button>
               <button
                 type="button"
@@ -549,332 +876,9 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
               </button>
             </div>
           </div>
-        </main>
-      ) : (
-        /* ── Main Split-Screen Asymmetric Area ── */
-        <main className="relative z-10 flex-1 grid lg:grid-cols-[1.1fr_0.9fr] max-w-7xl w-full mx-auto p-6 sm:p-10 gap-10 items-center">
-          {/* Left Column: Product Value & Workflow Narrative */}
-          <div className="hidden lg:flex flex-col justify-center space-y-6 pr-6">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-3.5 py-1 text-xs font-semibold text-brand-300 font-mono">
-                <Sparkles size={13} />
-                <span>Multi-Modal Duplicate Workstation</span>
-              </div>
+        </section>
 
-              <h1 className="text-4xl xl:text-5xl font-extrabold font-display text-white tracking-tight leading-[1.15]">
-                Intelligent duplicate discovery & <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-400 to-indigo-400">safe cleanup</span>.
-              </h1>
-
-              <p className="text-sm text-slate-400 leading-relaxed max-w-xl">
-                Identifies visual image derivatives, document revisions, and exact duplicates directly on your device.
-              </p>
-            </div>
-
-            {/* 6-Step Core Workflow Strip */}
-            <div className="space-y-2 pt-2 border-t border-[#1d202e]">
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-                  6-Stage Intelligence Pipeline
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setActiveView('about')}
-                  className="text-[11px] font-bold text-brand-400 hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <span>Engine Tour</span>
-                  <ArrowRight size={12} />
-                </button>
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-xs">
-                {[
-                  { step: '01 SCAN', desc: 'Folder ingest' },
-                  { step: '02 DETECT', desc: 'pHash & vectors' },
-                  { step: '03 EXPLAIN', desc: 'Signal diffs' },
-                  { step: '04 RECOMMEND', desc: 'Master pick' },
-                  { step: '05 REVIEW', desc: 'Side-by-side' },
-                  { step: '06 QUARANTINE', desc: '30-day bin' }
-                ].map(w => (
-                  <div key={w.step} className="rounded-xl border border-[#1f2333] bg-[#11131c] p-2.5 space-y-0.5">
-                    <p className="font-mono text-[10px] font-bold text-brand-400">{w.step}</p>
-                    <p className="text-[10px] text-slate-400 leading-tight font-medium">{w.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* On-Device Privacy Guarantee Card */}
-            <div className="rounded-2xl border border-emerald-500/25 bg-emerald-950/15 p-3.5 flex items-center gap-3">
-              <ShieldCheck size={18} className="text-emerald-400 shrink-0" />
-              <div className="text-xs space-y-0.5">
-                <p className="font-bold text-emerald-300">100% Local-First Engine</p>
-                <p className="text-emerald-200/80 leading-relaxed text-[11px]">
-                  Zero cloud uploads. All analysis runs directly on your CPU/GPU.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Premium Auth Card */}
-          <div className="w-full max-w-[460px] mx-auto">
-            <div className="rounded-3xl border border-[#262a3c] bg-[#11131c]/90 backdrop-blur-2xl p-7 sm:p-9 shadow-2xl space-y-6">
-              {/* Header */}
-              <div>
-                <h2 className="text-2xl font-bold font-display text-white tracking-tight">
-                  {mode === 'signin' ? 'Welcome back' : mode === 'signup' ? 'Create an account' : 'Reset password'}
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  {mode === 'signin'
-                    ? 'Sign in to access your local file intelligence workspace.'
-                    : mode === 'signup'
-                    ? 'Start scanning and organizing your duplicate files.'
-                    : 'Enter your email address to receive reset instructions.'}
-                </p>
-              </div>
-
-              {/* Error / Success Alerts */}
-              {error && (
-                <div className="rounded-xl border border-rose-500/40 bg-rose-500/15 p-3 text-xs text-rose-200 flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-rose-400 shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
-              {successMessage && (
-                <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/15 p-3 text-xs text-emerald-200 flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
-                  <span>{successMessage}</span>
-                </div>
-              )}
-
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-3.5">
-                {mode === 'signup' && (
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-300 block">Full Name</label>
-                    <div className="relative">
-                      <User size={14} className="absolute left-3.5 top-3.5 text-slate-500" />
-                      <input
-                        type="text"
-                        placeholder="Alex Morgan"
-                        value={name}
-                        onChange={e => setName(e.target.value)}
-                        className="w-full rounded-xl border border-[#262a3c] bg-[#161924] pl-10 pr-3 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-brand-500 focus:bg-[#1b1f2e] transition-colors"
-                        required
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-300 block">Email Address</label>
-                  <div className="relative">
-                    <Mail size={14} className="absolute left-3.5 top-3.5 text-slate-500" />
-                    <input
-                      type="email"
-                      placeholder="alex.morgan@workspace.io"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      className="w-full rounded-xl border border-[#262a3c] bg-[#161924] pl-10 pr-3 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-brand-500 focus:bg-[#1b1f2e] transition-colors"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {mode !== 'forgot' && (
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-semibold text-slate-300">Password</label>
-                      {mode === 'signin' && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setMode('forgot')
-                            setError(null)
-                          }}
-                          className="text-[10.5px] text-brand-400 hover:underline"
-                        >
-                          Forgot password?
-                        </button>
-                      )}
-                    </div>
-                    <div className="relative">
-                      <Lock size={14} className="absolute left-3.5 top-3.5 text-slate-500" />
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        className="w-full rounded-xl border border-[#262a3c] bg-[#161924] pl-10 pr-10 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-brand-500 focus:bg-[#1b1f2e] transition-colors font-mono"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        tabIndex={-1}
-                        className="absolute right-3.5 top-3 text-slate-500 hover:text-slate-300"
-                      >
-                        {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                      </button>
-                    </div>
-
-                    {/* Dynamic Password Strength Indicator for Signup */}
-                    {mode === 'signup' && password && (
-                      <div className="pt-1.5 space-y-1">
-                        <div className="flex items-center justify-between text-[10px]">
-                          <span className="text-slate-400">Strength:</span>
-                          <span className="font-semibold text-slate-300">{passwordStrength.label}</span>
-                        </div>
-                        <div className="grid grid-cols-4 gap-1 h-1">
-                          {[1, 2, 3, 4].map(step => (
-                            <div
-                              key={step}
-                              className={`rounded-full h-full transition-all ${
-                                step <= passwordStrength.score ? passwordStrength.color : 'bg-[#262a3c]'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {mode === 'signup' && (
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-300 block">Confirm Password</label>
-                    <div className="relative">
-                      <Lock size={14} className="absolute left-3.5 top-3.5 text-slate-500" />
-                      <input
-                        type="password"
-                        placeholder="••••••••"
-                        value={confirmPassword}
-                        onChange={e => setConfirmPassword(e.target.value)}
-                        className="w-full rounded-xl border border-[#262a3c] bg-[#161924] pl-10 pr-3 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-brand-500 focus:bg-[#1b1f2e] transition-colors font-mono"
-                        required
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {mode === 'signin' && (
-                  <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer select-none pt-0.5">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={e => setRememberMe(e.target.checked)}
-                      className="h-3.5 w-3.5 rounded border-[#262a3c] bg-[#161924] accent-brand-600 cursor-pointer"
-                    />
-                    <span>Remember this workspace session</span>
-                  </label>
-                )}
-
-                {mode === 'signup' && (
-                  <label className="flex items-start gap-2 text-[11px] text-slate-400 cursor-pointer select-none pt-0.5">
-                    <input
-                      type="checkbox"
-                      checked={termsAccepted}
-                      onChange={e => setTermsAccepted(e.target.checked)}
-                      className="h-3.5 w-3.5 mt-0.5 rounded border-[#262a3c] bg-[#161924] accent-brand-600 cursor-pointer"
-                    />
-                    <span>I accept the Terms of Service and local privacy policy</span>
-                  </label>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full rounded-2xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 py-3.5 px-6 text-sm font-bold text-white transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 shadow-glow mt-3 active:scale-[0.98]"
-                >
-                  <span>
-                    {loading
-                      ? 'Processing...'
-                      : mode === 'signin'
-                      ? 'Sign In to Workspace'
-                      : mode === 'signup'
-                      ? 'Create Workspace Account'
-                      : 'Send Reset Link'}
-                  </span>
-                  {!loading && <ArrowRight size={16} />}
-                </button>
-
-                {mode === 'forgot' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMode('signin')
-                      setError(null)
-                    }}
-                    className="w-full text-center text-xs text-brand-400 hover:underline pt-1 block"
-                  >
-                    ← Back to Sign In
-                  </button>
-                )}
-              </form>
-
-              {/* Quick Test Profiles for Evaluators */}
-              {mode === 'signin' && (
-                <div className="pt-3 border-t border-[#222636] space-y-2">
-                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-center font-mono">
-                    Quick Test Credentials
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {quickUsers.map(u => (
-                      <button
-                        key={u.email}
-                        type="button"
-                        onClick={() => handleQuickSelect(u)}
-                        className="flex items-center gap-2 rounded-xl border border-[#262a3c] bg-[#161924] p-2 text-left hover:border-brand-500/50 hover:bg-[#1b1f2e] transition-all cursor-pointer"
-                      >
-                        <div className="grid h-6 w-6 shrink-0 place-items-center rounded bg-brand-500/20 text-brand-300 font-mono font-bold text-[10px]">
-                          {u.initials}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[11px] font-bold text-white truncate">{u.name}</p>
-                          <p className="text-[9px] text-slate-400 truncate">{u.role}</p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Mode Switcher Toggle */}
-              <div className="pt-1 text-center text-xs text-slate-400 border-t border-[#222636]">
-                {mode === 'signin' ? (
-                  <p>
-                    Don't have a workspace?{' '}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMode('signup')
-                        setError(null)
-                        setSuccessMessage(null)
-                      }}
-                      className="font-bold text-brand-400 hover:underline ml-1"
-                    >
-                      Sign up now
-                    </button>
-                  </p>
-                ) : (
-                  <p>
-                    Already have an account?{' '}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMode('signin')
-                        setError(null)
-                        setSuccessMessage(null)
-                      }}
-                      className="font-bold text-brand-400 hover:underline ml-1"
-                    >
-                      Sign in
-                    </button>
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </main>
-      )}
+      </main>
 
       {/* ── Footer ── */}
       <footer className="relative z-10 border-t border-[#1d202e] bg-[#090a0f] py-4 px-6 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between max-w-7xl w-full mx-auto">
@@ -886,10 +890,10 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
         <div className="flex items-center gap-4 text-[11px]">
           <button
             type="button"
-            onClick={() => setActiveView(activeView === 'about' ? 'auth' : 'about')}
-            className="text-brand-400 hover:underline font-bold"
+            onClick={scrollToAbout}
+            className="text-brand-400 hover:underline font-bold cursor-pointer"
           >
-            {activeView === 'about' ? 'Switch to Sign In' : 'Interactive About & Architecture Tour'}
+            Interactive About & Architecture Tour ↓
           </button>
           <span className="font-mono text-slate-600">FINDATHON 2026</span>
         </div>
