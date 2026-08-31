@@ -250,6 +250,8 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
         loop
         muted
         playsInline
+        preload="auto"
+        poster="/assets/cinematic_bg.jpg"
         className="fixed inset-0 z-0 h-full w-full object-cover scale-105 pointer-events-none opacity-85 filter brightness-115 contrast-105"
         src="/assets/background_video.mp4"
       />
