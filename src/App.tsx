@@ -17,7 +17,7 @@ function AuthenticatedApp() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-xs text-slate-400 font-mono bg-[#0f1012]">
+      <div className="app-canvas min-h-screen flex items-center justify-center text-xs text-slate-400 font-mono">
         Initializing workspace session...
       </div>
     )

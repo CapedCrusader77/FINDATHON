@@ -15,8 +15,7 @@ import {
   ShieldCheck,
   Star,
   RefreshCw,
-  FolderOpen,
-  Network
+  FolderOpen
 } from 'lucide-react'
 import { fetchGroups } from '../lib/api'
 import { formatBytes } from '../lib/utils'
@@ -24,7 +23,6 @@ import { DuplicateGroup } from '../types'
 import { Card, SectionTitle, Button, Badge, Input } from '../components/ui'
 import ImageCompareModal from '../components/ImageCompareModal'
 import DocumentDiffViewer from '../components/DocumentDiffViewer'
-import SimilarityGraph from '../components/SimilarityGraph'
 
 import { useAuth } from '../context/AuthContext'
 
@@ -36,14 +34,11 @@ export default function DuplicateGroupsPage({ filter }: { filter?: 'image' | 'do
   })
 
 
-  const [tab, setTab] = useState<string>(
-    filter === 'image' ? 'Images' : filter === 'document' ? 'Documents' : 'All'
-  )
+  const [tab, setTab] = useState<string>('All')
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<'recoverable' | 'similarity' | 'count'>('recoverable')
   const [inspectImageGroup, setInspectImageGroup] = useState<DuplicateGroup | null>(null)
   const [inspectDocGroup, setInspectDocGroup] = useState<DuplicateGroup | null>(null)
-  const [activeGraphGroup, setActiveGraphGroup] = useState<DuplicateGroup | null>(null)
 
   const filtered = useMemo(() => {
     return groups
@@ -108,11 +103,10 @@ export default function DuplicateGroupsPage({ filter }: { filter?: 'image' | 'do
             <button
               key={item}
               onClick={() => setTab(item)}
-              className={`rounded-md px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors ${
-                tab === item
+              className={`rounded-md px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors ${tab === item
                   ? 'bg-brand-600 text-white shadow-sm'
                   : 'text-slate-400 hover:bg-[#161922] hover:text-white'
-              }`}
+                }`}
             >
               {item}
             </button>
@@ -168,7 +162,6 @@ export default function DuplicateGroupsPage({ filter }: { filter?: 'image' | 'do
               group={group}
               onInspectImage={() => setInspectImageGroup(group)}
               onInspectDoc={() => setInspectDocGroup(group)}
-              onInspectGraph={() => setActiveGraphGroup(group)}
             />
           ))}
         </div>
@@ -199,15 +192,6 @@ export default function DuplicateGroupsPage({ filter }: { filter?: 'image' | 'do
           onClose={() => setInspectDocGroup(null)}
         />
       )}
-
-      {activeGraphGroup && (
-        <SimilarityGraph
-          group={activeGraphGroup}
-          isModal
-          isOpen={Boolean(activeGraphGroup)}
-          onClose={() => setActiveGraphGroup(null)}
-        />
-      )}
     </div>
   )
 }
@@ -215,13 +199,11 @@ export default function DuplicateGroupsPage({ filter }: { filter?: 'image' | 'do
 function GroupRowCard({
   group,
   onInspectImage,
-  onInspectDoc,
-  onInspectGraph
+  onInspectDoc
 }: {
   group: DuplicateGroup
   onInspectImage: () => void
   onInspectDoc: () => void
-  onInspectGraph: () => void
 }) {
   const masterFile = group.files.find(f => f.isRecommended) || group.files[0]
   const isImage = group.type === 'Near image' || group.category === 'image'
@@ -268,11 +250,10 @@ function GroupRowCard({
           {group.files.map(file => (
             <div
               key={file.id}
-              className={`flex items-center justify-between rounded-md p-2.5 text-xs transition-colors ${
-                file.isRecommended
+              className={`flex items-center justify-between rounded-md p-2.5 text-xs transition-colors ${file.isRecommended
                   ? 'bg-emerald-950/20 border border-emerald-500/30'
                   : 'bg-[#0c0e14] border border-[#1e2230]'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 {file.isRecommended ? (
@@ -337,16 +318,6 @@ function GroupRowCard({
               <span>View Diff</span>
             </Button>
           )}
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onInspectGraph}
-            className="text-xs h-7.5"
-          >
-            <Network size={12} />
-            <span>Graph</span>
-          </Button>
 
           <Link to={`/groups/${group.id}`}>
             <Button size="sm" className="bg-brand-600 hover:bg-brand-500 text-white text-xs h-7.5">
