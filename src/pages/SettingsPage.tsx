@@ -79,19 +79,19 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1e2230] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-white font-display">
-            Algorithm & Sensitivity Settings
+          <h2 className="text-2xl font-bold tracking-tight text-white font-display">
+            Algorithm & Sensitivity Preferences
           </h2>
           <p className="mt-0.5 text-xs text-slate-400">
-            Tune algorithmic detection thresholds for perceptual image hashing, text n-grams, and Louvain clustering.
+            Tune algorithmic detection cutoffs for perceptual image hashing, text n-grams, and Louvain clustering.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Button
-            variant="outline"
+            variant="glass"
             size="sm"
             onClick={handleResetDefaults}
             className="text-xs"
@@ -103,25 +103,25 @@ export default function SettingsPage() {
             size="sm"
             disabled={mutation.isPending}
             onClick={handleSave}
-            className="bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs"
+            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-glowBlue rounded-xl"
           >
             <Save size={13} />
-            <span>Save Settings</span>
+            <span>Save Preferences</span>
           </Button>
         </div>
       </div>
 
       {/* Main Settings Form Card */}
-      <Card className="p-6 bg-[#11141d] border-[#1e2230] space-y-6">
+      <Card className="p-6 sm:p-8 space-y-6">
         <SectionTitle
           eyebrow="Detection Thresholds"
-          title="Multi-Modal Sensitivity"
-          subtitle="Lower values detect broader near-matches; higher values restrict to strict copies."
+          title="Multi-Modal Sensitivity Tuning"
+          subtitle="Lower values detect broader near-matches; higher values restrict to strict clones."
         />
 
-        <div className="space-y-6 divide-y divide-[#1e2230]">
+        <div className="space-y-6 divide-y divide-white/[0.08]">
           {/* Image Threshold */}
-          <div className="space-y-2 pt-2">
+          <div className="space-y-2.5 pt-2">
             <div className="flex items-center justify-between text-xs">
               <div>
                 <span className="font-bold text-white">Image Perceptual Similarity Cutoff</span>
@@ -129,7 +129,7 @@ export default function SettingsPage() {
                   Hamming distance threshold across pHash, dHash, and wavelet fingerprints.
                 </p>
               </div>
-              <span className="font-mono font-bold text-brand-400 text-xs">≥ {imageThresh}%</span>
+              <span className="font-mono font-bold text-blue-400 text-xs">≥ {imageThresh}%</span>
             </div>
             <input
               type="range"
@@ -137,12 +137,12 @@ export default function SettingsPage() {
               max="99"
               value={imageThresh}
               onChange={e => setImageThresh(Number(e.target.value))}
-              className="w-full h-1.5 bg-[#1e2230] rounded-lg appearance-none cursor-pointer accent-brand-500"
+              className="w-full h-2 bg-white/[0.10] rounded-lg appearance-none cursor-pointer accent-blue-500"
             />
           </div>
 
           {/* Document Threshold */}
-          <div className="space-y-2 pt-4">
+          <div className="space-y-2.5 pt-5">
             <div className="flex items-center justify-between text-xs">
               <div>
                 <span className="font-bold text-white">Document N-Gram & Structural Cutoff</span>
@@ -150,7 +150,7 @@ export default function SettingsPage() {
                   Cross-format text similarity between DOCX, PDF, and Markdown drafts.
                 </p>
               </div>
-              <span className="font-mono font-bold text-brand-400 text-xs">≥ {docThresh}%</span>
+              <span className="font-mono font-bold text-blue-400 text-xs">≥ {docThresh}%</span>
             </div>
             <input
               type="range"
@@ -158,12 +158,12 @@ export default function SettingsPage() {
               max="99"
               value={docThresh}
               onChange={e => setDocThresh(Number(e.target.value))}
-              className="w-full h-1.5 bg-[#1e2230] rounded-lg appearance-none cursor-pointer accent-brand-500"
+              className="w-full h-2 bg-white/[0.10] rounded-lg appearance-none cursor-pointer accent-blue-500"
             />
           </div>
 
           {/* Semantic Match Threshold */}
-          <div className="space-y-2 pt-4">
+          <div className="space-y-2.5 pt-5">
             <div className="flex items-center justify-between text-xs">
               <div>
                 <span className="font-bold text-white">Semantic Embedding Cosine Distance</span>
@@ -171,7 +171,7 @@ export default function SettingsPage() {
                   Vector representation cutoff for reformatted or rephrased documents.
                 </p>
               </div>
-              <span className="font-mono font-bold text-brand-400 text-xs">≥ {semanticThresh}%</span>
+              <span className="font-mono font-bold text-blue-400 text-xs">≥ {semanticThresh}%</span>
             </div>
             <input
               type="range"
@@ -179,35 +179,35 @@ export default function SettingsPage() {
               max="95"
               value={semanticThresh}
               onChange={e => setSemanticThresh(Number(e.target.value))}
-              className="w-full h-1.5 bg-[#1e2230] rounded-lg appearance-none cursor-pointer accent-brand-500"
+              className="w-full h-2 bg-white/[0.10] rounded-lg appearance-none cursor-pointer accent-blue-500"
             />
           </div>
         </div>
       </Card>
 
-      {/* Engine & Database Status Card */}
-      <Card className="p-5 bg-[#11141d] border-[#1e2230]">
-        <div className="flex items-center gap-2 mb-3">
-          <ShieldCheck size={16} className="text-emerald-400" />
+      {/* Engine & Workstation Status Card */}
+      <Card className="p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <ShieldCheck size={18} className="text-emerald-400" />
           <h3 className="text-xs font-bold uppercase tracking-wider text-white">
-            Local Workstation Specifications
+            macOS Pro Workstation Hardware Engine
           </h3>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3 text-xs">
-          <div className="rounded-md border border-[#1e2230] bg-[#161922] p-3">
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3.5">
             <p className="text-[10px] text-slate-400">Database Connection</p>
-            <p className="mt-0.5 font-bold text-emerald-400 font-mono text-xs">MongoDB Atlas / Local</p>
+            <p className="mt-1 font-bold text-emerald-400 font-mono text-xs">MongoDB Atlas / Local</p>
           </div>
 
-          <div className="rounded-md border border-[#1e2230] bg-[#161922] p-3">
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3.5">
             <p className="text-[10px] text-slate-400">Cryptographic Engine</p>
-            <p className="mt-0.5 font-bold text-white font-mono text-xs">SHA-256 Fast Chunking</p>
+            <p className="mt-1 font-bold text-white font-mono text-xs">SHA-256 Fast Chunking</p>
           </div>
 
-          <div className="rounded-md border border-[#1e2230] bg-[#161922] p-3">
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3.5">
             <p className="text-[10px] text-slate-400">Vision Fingerprinter</p>
-            <p className="mt-0.5 font-bold text-white font-mono text-xs">ImageHash (pHash / dHash)</p>
+            <p className="mt-1 font-bold text-white font-mono text-xs">ImageHash (pHash / dHash)</p>
           </div>
         </div>
       </Card>

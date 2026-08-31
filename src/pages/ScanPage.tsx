@@ -20,7 +20,7 @@ import {
 } from 'lucide-react'
 import { startScan, fetchScanProgress } from '../lib/api'
 import { formatBytes } from '../lib/utils'
-import { Card, SectionTitle, Button, Badge, Input } from '../components/ui'
+import { Card, SectionTitle, Button, Badge, TrafficLights } from '../components/ui'
 import { useToast } from '../components/Toast'
 
 interface FileLog {
@@ -43,17 +43,17 @@ export default function ScanPage() {
   const [logs, setLogs] = useState<FileLog[]>([])
 
   const stages = [
-    { key: 'discovering', label: 'File Discovery', icon: FolderOpen, desc: 'Crawling directory trees' },
-    { key: 'hashing', label: 'SHA-256 Pass', icon: Cpu, desc: 'Cryptographic exact matches' },
-    { key: 'analyzing', label: 'Vector Extraction', icon: Sparkles, desc: 'Perceptual & NLP embeddings' },
-    { key: 'clustering', label: 'Louvain Graph', icon: Layers, desc: 'Master recommendation' }
+    { key: 'discovering', label: 'File Discovery', icon: FolderOpen, desc: 'Crawling directory trees', color: 'from-blue-500 to-indigo-600' },
+    { key: 'hashing', label: 'SHA-256 Bit Pass', icon: Cpu, desc: 'Cryptographic exact matches', color: 'from-indigo-500 to-purple-600' },
+    { key: 'analyzing', label: 'Vector Extraction', icon: Sparkles, desc: 'Perceptual & NLP embeddings', color: 'from-purple-500 to-pink-600' },
+    { key: 'clustering', label: 'Louvain Graph', icon: Layers, desc: 'Master recommendation', color: 'from-emerald-500 to-teal-600' }
   ]
 
   const mutation = useMutation({
     mutationFn: startScan,
     onSuccess: result => {
       setScanId(result.id)
-      pushToast('Scan initiated. Analyzing duplicate candidates in local worker.', 'info')
+      pushToast('Scan initiated. Analyzing duplicate candidates in background worker.', 'info')
     },
     onError: () => {
       pushToast('Could not start scan. Please verify folder permissions.', 'error')
@@ -75,7 +75,6 @@ export default function ScanPage() {
     }
   })
 
-  // Stream incoming file progress into the terminal log
   useEffect(() => {
     if (progressQuery.data?.current_file) {
       const current = progressQuery.data.current_file
@@ -109,7 +108,7 @@ export default function ScanPage() {
   const handleStartUploadScan = () => {
     if (!selectedFiles?.length) return
     const files = Array.from(selectedFiles)
-    
+
     setLogs(
       files.slice(0, 10).map((f, i) => ({
         id: String(i),
@@ -141,33 +140,33 @@ export default function ScanPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1e2230] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-white font-display">
-            Intelligent Duplicate Scanner
+          <h2 className="text-2xl font-bold tracking-tight text-white font-display">
+            Intelligent File Scanner
           </h2>
           <p className="mt-0.5 text-xs text-slate-400">
-            Execute a non-destructive multi-modal pass across your drive to cluster identical and near-duplicate files.
+            Execute an on-device multi-modal scan across your directories to cluster identical and near-duplicate files.
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs text-emerald-400 border border-emerald-500/25 bg-emerald-500/10 px-3 py-1.5 rounded-lg">
+        <div className="flex items-center gap-1.5 text-xs text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1.5 rounded-full backdrop-blur-md">
           <ShieldCheck size={14} />
-          <span>Local Engine · Zero Cloud Exposure</span>
+          <span>Local Engine · Zero External Uploads</span>
         </div>
       </div>
 
       {/* Main Scan Config Card */}
-      <Card className="p-6 bg-[#11141d] border-[#1e2230]">
-        <div className="space-y-5">
-          {/* Mode Switcher */}
-          <div className="flex items-center gap-2 border-b border-[#1e2230] pb-4">
+      <Card className="p-6 sm:p-8">
+        <div className="space-y-6">
+          {/* Mode Switcher Segmented Control */}
+          <div className="flex items-center gap-2 border-b border-white/[0.08] pb-4">
             <button
               onClick={() => setActiveMode('upload')}
-              className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-colors ${
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
                 activeMode === 'upload'
-                  ? 'bg-brand-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:bg-[#161922] hover:text-white'
+                  ? 'bg-blue-600 text-white shadow-glowBlue'
+                  : 'text-slate-400 hover:bg-white/[0.06] hover:text-white'
               }`}
             >
               <Upload size={14} />
@@ -176,10 +175,10 @@ export default function ScanPage() {
 
             <button
               onClick={() => setActiveMode('local')}
-              className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-colors ${
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
                 activeMode === 'local'
-                  ? 'bg-brand-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:bg-[#161922] hover:text-white'
+                  ? 'bg-blue-600 text-white shadow-glowBlue'
+                  : 'text-slate-400 hover:bg-white/[0.06] hover:text-white'
               }`}
             >
               <HardDrive size={14} />
@@ -187,12 +186,12 @@ export default function ScanPage() {
             </button>
           </div>
 
-          {/* Mode 1: Browser Folder Selection */}
+          {/* Mode 1: Browser Folder Upload */}
           {activeMode === 'upload' && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <label
                 htmlFor="folder-upload"
-                className="group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#272d3f] bg-[#0c0e14] p-8 text-center hover:border-brand-500/50 hover:bg-[#161922] transition-colors cursor-pointer"
+                className="group relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/[0.14] bg-white/[0.02] p-10 text-center hover:border-blue-500/60 hover:bg-white/[0.05] transition-all cursor-pointer"
               >
                 <input
                   id="folder-upload"
@@ -205,25 +204,25 @@ export default function ScanPage() {
                   className="hidden"
                 />
 
-                <div className="grid h-12 w-12 place-items-center rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/20 group-hover:scale-105 transition-transform">
-                  <FolderOpen size={24} />
+                <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-glowBlue group-hover:scale-105 transition-transform">
+                  <FolderOpen size={26} />
                 </div>
 
-                <h3 className="mt-3 text-sm font-bold text-white">
+                <h3 className="mt-4 text-base font-bold text-white">
                   {selectedFiles?.length
-                    ? `${selectedFiles.length} files selected in "${selectedFiles[0].webkitRelativePath?.split('/')[0] || 'folder'}"`
-                    : 'Click to select a local directory'}
+                    ? `${selectedFiles.length} files staged from "${selectedFiles[0].webkitRelativePath?.split('/')[0] || 'folder'}"`
+                    : 'Click to select a local folder'}
                 </h3>
 
                 <p className="mt-1 text-xs text-slate-400 max-w-md">
-                  Analyzes photos (JPEG, PNG, WebP, RAW) and documents (DOCX, PDF, TXT, MD).
+                  Processes photos (JPEG, PNG, WebP, RAW) and documents (DOCX, PDF, TXT, Markdown).
                 </p>
 
                 {selectedFiles && (
-                  <div className="mt-3 flex items-center gap-2.5">
-                    <Badge tone="purple">{selectedFiles.length} Files Staged</Badge>
+                  <div className="mt-4 flex items-center gap-3">
+                    <Badge tone="purple">{selectedFiles.length} Files Ready</Badge>
                     <span className="text-xs text-slate-400 font-mono">
-                      {formatBytes(Array.from(selectedFiles).reduce((acc, f) => acc + f.size, 0))} Total Size
+                      {formatBytes(Array.from(selectedFiles).reduce((acc, f) => acc + f.size, 0))} Total
                     </span>
                   </div>
                 )}
@@ -231,17 +230,17 @@ export default function ScanPage() {
 
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                 <p className="text-xs text-slate-400">
-                  Files remain on your local disk. No external uploads.
+                  Files remain on local disk. Zero telemetry or metadata uploaded.
                 </p>
 
                 <Button
                   size="md"
                   disabled={!selectedFiles?.length || isScanning}
                   onClick={handleStartUploadScan}
-                  className="w-full sm:w-auto bg-brand-600 hover:bg-brand-500 text-white font-semibold px-6 shadow-sm"
+                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-semibold px-7 shadow-glowBlue rounded-xl"
                 >
                   {isScanning ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} />}
-                  <span>{isScanning ? 'Scanning in Progress...' : 'Start Deduplication Scan'}</span>
+                  <span>{isScanning ? 'Analyzing Files...' : 'Start Deduplication Scan'}</span>
                   <ArrowRight size={14} />
                 </Button>
               </div>
@@ -255,8 +254,8 @@ export default function ScanPage() {
                 <label className="text-xs font-bold text-slate-300">
                   Absolute Directory Path on Local Computer
                 </label>
-                <div className="flex items-center rounded-lg border border-[#272d3f] bg-[#0c0e14] px-3 py-2 text-xs focus-within:border-brand-500">
-                  <FolderOpen size={16} className="text-brand-400 mr-2.5 shrink-0" />
+                <div className="flex items-center rounded-xl border border-white/[0.12] bg-white/[0.04] px-3.5 py-2.5 text-xs focus-within:border-blue-500 focus:bg-white/[0.08] backdrop-blur-md">
+                  <FolderOpen size={16} className="text-blue-400 mr-3 shrink-0" />
                   <input
                     type="text"
                     value={localPathInput}
@@ -272,7 +271,7 @@ export default function ScanPage() {
                   size="md"
                   disabled={!localPathInput.trim() || isScanning}
                   onClick={handleStartPathScan}
-                  className="bg-brand-600 hover:bg-brand-500 text-white font-semibold px-6 shadow-sm text-xs"
+                  className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 shadow-glowBlue text-xs rounded-xl"
                 >
                   {isScanning ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} />}
                   <span>Scan Directory Path</span>
@@ -285,48 +284,48 @@ export default function ScanPage() {
 
       {/* Real-time Progress & Pipeline Execution */}
       {(isScanning || effectivePhase === 'complete') && (
-        <Card className="p-6 bg-[#11141d] border-[#1e2230] space-y-5">
+        <Card className="p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-brand-400">
+                <span className="h-2 w-2 rounded-full bg-blue-400 animate-ping" />
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-400 font-mono">
                   Active Execution Pass
                 </p>
               </div>
-              <h3 className="mt-1 text-base font-bold text-white">
+              <h3 className="mt-1 text-lg font-bold text-white">
                 {effectivePhase === 'complete'
-                  ? 'Scan Completed · Deduplication Graph Ready'
+                  ? 'Scan Complete · Deduplication Graph Ready'
                   : effectivePhase === 'discovering'
                   ? 'Discovering Files & Directory Trees...'
                   : effectivePhase === 'hashing'
                   ? 'Computing Cryptographic SHA-256 Fast Hashes...'
                   : effectivePhase === 'analyzing'
-                  ? 'Extracting Perceptual Hashes & Document Vectors...'
+                  ? 'Extracting Perceptual Hashes & Text Embeddings...'
                   : 'Constructing Louvain Duplicate Clusters...'}
               </h3>
               <p className="mt-0.5 text-xs text-slate-400">
                 {effectivePhase === 'complete'
-                  ? 'All duplicate candidate clusters have been evaluated and stored in your database.'
+                  ? 'All duplicate candidate clusters have been evaluated and stored in your workspace.'
                   : `Processing candidate queue: ${effectiveProgress}% completed.`}
               </p>
             </div>
 
-            <span className="font-mono text-2xl font-bold text-brand-400">
+            <span className="font-mono text-3xl font-extrabold text-blue-400">
               {effectiveProgress}%
             </span>
           </div>
 
           {/* Progress Bar */}
-          <div className="h-2 w-full overflow-hidden rounded-full bg-[#1a1e29]">
+          <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/[0.08] p-0.5">
             <div
               style={{ width: `${effectiveProgress}%` }}
-              className="h-full bg-brand-500 transition-all duration-300 rounded-full"
+              className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300 rounded-full shadow-glowBlue"
             />
           </div>
 
-          {/* 4 Stage Indicators */}
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 pt-1">
+          {/* 4 Stage Cards */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pt-1">
             {stages.map((stage, idx) => {
               const stageOrder = ['discovering', 'hashing', 'analyzing', 'clustering', 'complete']
               const currentIndex = stageOrder.indexOf(effectivePhase)
@@ -337,48 +336,48 @@ export default function ScanPage() {
               return (
                 <div
                   key={stage.key}
-                  className={`rounded-lg border p-3 transition-colors ${
+                  className={`rounded-2xl border p-4 transition-all ${
                     isPassed
-                      ? 'border-emerald-500/30 bg-emerald-950/15 text-emerald-300'
+                      ? 'border-emerald-500/35 bg-emerald-500/10 text-emerald-300'
                       : isCurrent
-                      ? 'border-brand-500/50 bg-brand-950/25 text-white'
-                      : 'border-[#1e2230] bg-[#0c0e14] text-slate-500'
+                      ? 'border-blue-500/50 bg-blue-500/15 text-white shadow-glowBlue'
+                      : 'border-white/[0.08] bg-white/[0.02] text-slate-500'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <Icon size={14} className={isPassed ? 'text-emerald-400' : isCurrent ? 'text-brand-400 animate-spin' : ''} />
+                    <Icon size={16} className={isPassed ? 'text-emerald-400' : isCurrent ? 'text-blue-400 animate-pulse' : ''} />
                     {isPassed ? (
-                      <CheckCircle2 size={13} className="text-emerald-400" />
+                      <CheckCircle2 size={15} className="text-emerald-400" />
                     ) : (
-                      <span className="font-mono text-[10px] text-slate-500">{idx + 1}</span>
+                      <span className="font-mono text-xs text-slate-500">{idx + 1}</span>
                     )}
                   </div>
-                  <p className="mt-1.5 text-xs font-bold text-white">{stage.label}</p>
+                  <p className="mt-2 text-xs font-bold text-white">{stage.label}</p>
                   <p className="mt-0.5 text-[10px] text-slate-400">{stage.desc}</p>
                 </div>
               )
             })}
           </div>
 
-          {/* Complete CTA */}
+          {/* Complete Banner */}
           {effectivePhase === 'complete' && (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-4">
-              <div className="flex items-center gap-3">
-                <div className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-500 text-slate-950 font-bold text-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-emerald-500/35 bg-emerald-500/15 p-5 backdrop-blur-xl">
+              <div className="flex items-center gap-3.5">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-500 text-slate-950 font-bold text-base shadow-glowEmerald">
                   ✓
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Analysis Complete</h4>
-                  <p className="text-xs text-emerald-200/80 mt-0.5">
-                    Duplicate clusters and master recommendations are ready to review.
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Analysis Completed</h4>
+                  <p className="text-xs text-emerald-200/90 mt-0.5">
+                    Duplicate clusters and master recommendations are ready for review.
                   </p>
                 </div>
               </div>
 
               <Link to="/groups">
-                <Button size="sm" className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs">
+                <Button size="sm" className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs h-9 px-4 rounded-xl shadow-glowEmerald">
                   <span>Review Duplicate Groups</span>
-                  <ArrowRight size={13} />
+                  <ArrowRight size={14} />
                 </Button>
               </Link>
             </div>
@@ -386,27 +385,27 @@ export default function ScanPage() {
 
           {/* Live Ingest Log Stream */}
           {logs.length > 0 && (
-            <div className="rounded-lg border border-[#1e2230] bg-[#0c0e14] p-3.5 font-mono">
-              <div className="flex items-center justify-between border-b border-[#1e2230] pb-2 mb-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
-                  <Terminal size={13} className="text-brand-400" />
+            <div className="rounded-2xl border border-white/[0.10] bg-black/40 p-4 font-mono text-xs">
+              <div className="flex items-center justify-between border-b border-white/[0.08] pb-2.5 mb-2.5">
+                <div className="flex items-center gap-2 font-bold text-slate-300">
+                  <Terminal size={14} className="text-blue-400" />
                   <span>Real-Time Ingest Stream</span>
                 </div>
-                <Badge tone="blue">Live Feed</Badge>
+                <Badge tone="blue">Streaming</Badge>
               </div>
 
               <div className="space-y-1.5 max-h-40 overflow-y-auto pr-2 text-[11px]">
                 {logs.map(log => (
                   <div
                     key={log.id}
-                    className="flex items-center justify-between rounded bg-[#11141d] px-2.5 py-1 border border-[#1e2230]"
+                    className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-1.5 border border-white/[0.06]"
                   >
-                    <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0" />
                       <span className="truncate text-slate-300">{log.file}</span>
                       <span className="text-slate-500 text-[10px]">({log.size})</span>
                     </div>
-                    <span className="text-[10px] text-brand-300 shrink-0 pl-2">
+                    <span className="text-[10px] text-blue-300 shrink-0 pl-2">
                       {log.stage}
                     </span>
                   </div>
