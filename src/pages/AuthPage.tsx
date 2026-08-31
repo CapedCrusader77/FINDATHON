@@ -250,17 +250,17 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
         loop
         muted
         playsInline
-        className="fixed inset-0 z-0 h-full w-full object-cover scale-105 pointer-events-none opacity-40"
+        className="fixed inset-0 z-0 h-full w-full object-cover scale-105 pointer-events-none opacity-85 filter brightness-115 contrast-105"
         src="/assets/background_video.mp4"
       />
 
-      {/* ── 2. Cinematic Vignette Overlay ── */}
+      {/* ── 2. Cinematic Vignette Overlay (Lightened for brighter video visuals) ── */}
       <div
         className="fixed inset-0 z-[1] pointer-events-none"
         style={{
           background: `
-            radial-gradient(ellipse at center, rgba(9,10,15,0.45) 0%, rgba(9,10,15,0.85) 75%, #090a0f 100%),
-            linear-gradient(to top, rgba(9,10,15,0.95) 0%, rgba(9,10,15,0.4) 50%, rgba(9,10,15,0.9) 100%)
+            radial-gradient(ellipse at center, rgba(9,10,15,0.15) 0%, rgba(9,10,15,0.55) 75%, rgba(9,10,15,0.85) 100%),
+            linear-gradient(to top, rgba(9,10,15,0.85) 0%, rgba(9,10,15,0.2) 50%, rgba(9,10,15,0.75) 100%)
           `
         }}
       />
