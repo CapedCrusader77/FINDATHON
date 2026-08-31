@@ -121,7 +121,28 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#090a0f] text-[#f3f4f8] font-sans flex flex-col justify-between selection:bg-brand-600/30 selection:text-brand-300">
+    <div className="relative min-h-screen w-full bg-[#090a0f] text-[#f3f4f8] font-sans flex flex-col justify-between selection:bg-brand-600/30 selection:text-brand-300 overflow-x-hidden">
+      {/* ── 1. Full-Bleed Ambient Background Video ── */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="fixed inset-0 z-0 h-full w-full object-cover scale-105 pointer-events-none opacity-40"
+        src="/assets/background_video.mp4"
+      />
+
+      {/* ── 2. Cinematic Vignette Overlay ── */}
+      <div
+        className="fixed inset-0 z-[1] pointer-events-none"
+        style={{
+          background: `
+            radial-gradient(ellipse at center, rgba(9,10,15,0.45) 0%, rgba(9,10,15,0.85) 75%, #090a0f 100%),
+            linear-gradient(to top, rgba(9,10,15,0.95) 0%, rgba(9,10,15,0.4) 50%, rgba(9,10,15,0.9) 100%)
+          `
+        }}
+      />
+
       {/* ── Top Bar ── */}
       <header className="relative z-20 flex h-16 items-center justify-between px-6 sm:px-12 border-b border-[#1d202e] bg-[#090a0f]/80 backdrop-blur-md">
         <div className="flex items-center gap-2.5">
