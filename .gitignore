@@ -10,3 +10,5 @@ __pycache__/
 .DS_Store
 Thumbs.db
 .pytest_cache/
+*.mp4
+public/assets/*.mp4
