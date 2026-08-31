@@ -5,8 +5,8 @@
 @layer base {
   :root {
     font-family: 'Plus Jakarta Sans', Inter, ui-sans-serif, system-ui, sans-serif;
-    color: #f0f3f6;
-    background: #0c0e14;
+    color: #f4f1eb;
+    background: #0f1012;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
   }
@@ -19,8 +19,8 @@
   body {
     margin: 0;
     min-width: 320px;
-    background-color: #0c0e14;
-    color: #f0f3f6;
+    background-color: #0f1012;
+    color: #f4f1eb;
     min-height: 100vh;
     overflow-x: hidden;
   }
@@ -44,30 +44,98 @@
 
 /* Restrained desktop card & panel styling */
 .desktop-panel {
-  background-color: #11141d;
-  border: 1px solid #222634;
+  background-color: #151719;
+  border: 1px solid #2a2e33;
 }
 
 .desktop-card {
-  background-color: #161922;
-  border: 1px solid #222634;
+  background-color: #1b1d20;
+  border: 1px solid #2a2e33;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .desktop-card:hover {
-  background-color: #1a1e29;
-  border-color: #333a4d;
+  background-color: #202327;
+  border-color: #454b52;
 }
 
 .desktop-table-header {
-  background-color: #11141d;
-  border-bottom: 1px solid #222634;
+  background-color: #151719;
+  border-bottom: 1px solid #2a2e33;
 }
 
 .desktop-table-row {
-  border-bottom: 1px solid #1a1e29;
+  border-bottom: 1px solid #202327;
   transition: background-color 0.1s ease;
 }
+
+/* The visual language: a warm graphite canvas, quiet depth, and one human accent. */
+.app-canvas {
+  background:
+    radial-gradient(circle at 76% -8%, rgba(248, 117, 103, 0.10), transparent 30rem),
+    radial-gradient(circle at 18% 15%, rgba(138, 219, 177, 0.045), transparent 24rem),
+    #0f1012;
+}
+
+.app-sidebar {
+  background: rgba(20, 22, 24, 0.92);
+  border-color: #292d32;
+  box-shadow: 12px 0 42px rgba(0, 0, 0, 0.13);
+  backdrop-filter: blur(18px);
+}
+
+.app-topbar {
+  background: rgba(15, 16, 18, 0.78);
+  border-color: rgba(54, 59, 64, 0.72);
+}
+
+.hero-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-glow::after {
+  content: '';
+  position: absolute;
+  top: -8rem;
+  right: 8%;
+  width: 20rem;
+  height: 20rem;
+  border-radius: 9999px;
+  background: rgba(248, 117, 103, 0.075);
+  filter: blur(70px);
+  pointer-events: none;
+}
+
+.eyebrow {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+
+.soft-divider {
+  border-color: rgba(255, 255, 255, 0.075);
+}
+
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+}
+
+/* Keep legacy page-level utility tokens on the same visual system while the
+   individual surfaces are gradually refined. */
+body .bg-\[\#0c0e14\] { background-color: #0f1012 !important; }
+body .bg-\[\#0f121a\] { background-color: #131517 !important; }
+body .bg-\[\#11141d\] { background-color: #151719 !important; }
+body .bg-\[\#161922\] { background-color: #1b1d20 !important; }
+body .bg-\[\#1a1e29\] { background-color: #202327 !important; }
+body .bg-\[\#1b1f2b\] { background-color: #23262a !important; }
+body .bg-\[\#222738\] { background-color: #292d32 !important; }
+body .border-\[\#1e2230\] { border-color: #292d32 !important; }
+body .border-\[\#222634\] { border-color: #2a2e33 !important; }
+body .border-\[\#272d3f\] { border-color: #343a40 !important; }
 
 .desktop-table-row:hover {
   background-color: rgba(255, 255, 255, 0.02);

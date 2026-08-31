@@ -15,15 +15,15 @@ export function Button({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0c0e14] disabled:pointer-events-none disabled:opacity-40 select-none cursor-pointer',
+        'inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0f1012] disabled:pointer-events-none disabled:opacity-40 select-none cursor-pointer',
         variant === 'default' &&
           'bg-brand-600 text-white hover:bg-brand-500 shadow-sm border border-brand-500/30',
         variant === 'secondary' &&
-          'bg-[#1a1e2a] text-slate-200 hover:bg-[#222838] hover:text-white border border-[#272d3f]',
+          'bg-[#202327] text-slate-200 hover:bg-[#292d32] hover:text-white border border-[#343a40]',
         variant === 'outline' &&
-          'border border-[#272d3f] bg-transparent text-slate-300 hover:bg-[#161a24] hover:text-white hover:border-[#373e54]',
+          'border border-[#343a40] bg-transparent text-slate-300 hover:bg-[#202327] hover:text-white hover:border-[#555c64]',
         variant === 'ghost' &&
-          'text-slate-400 hover:bg-[#161a24] hover:text-slate-200',
+          'text-slate-400 hover:bg-[#202327] hover:text-slate-200',
         variant === 'subtle' &&
           'bg-brand-500/10 text-brand-300 border border-brand-500/20 hover:bg-brand-500/20',
         variant === 'danger' &&
@@ -53,7 +53,7 @@ export function Badge({
       className={cn(
         'inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold tracking-wide border',
         tone === 'neutral' &&
-          'bg-[#1a1e29] text-slate-300 border-[#272c3d]',
+          'bg-[#202327] text-slate-300 border-[#343a40]',
         tone === 'blue' &&
           'bg-blue-500/10 text-blue-400 border-blue-500/25',
         tone === 'green' &&
@@ -82,7 +82,7 @@ export function Card({
   return (
     <div
       className={cn(
-        'rounded-xl border border-[#222634] bg-[#11141d] shadow-subtle',
+        'rounded-2xl border border-[#2a2e33] bg-[#151719] shadow-subtle',
         className
       )}
       {...props}
@@ -101,7 +101,7 @@ export function Input({ className, error, ...props }: InputProps) {
     <div className="w-full">
       <input
         className={cn(
-          'w-full rounded-lg border border-[#272d3f] bg-[#0c0e14] px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none transition-colors focus:border-brand-500 focus:ring-1 focus:ring-brand-500',
+          'w-full rounded-xl border border-[#343a40] bg-[#0f1012] px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none transition-colors focus:border-brand-500 focus:ring-1 focus:ring-brand-500',
           error && 'border-rose-500 focus:border-rose-500 focus:ring-rose-500',
           className
         )}
@@ -124,14 +124,14 @@ export function SectionTitle({
   action?: ReactNode
 }) {
   return (
-    <div className="mb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+    <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
       <div>
         {eyebrow && (
-          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-brand-400">
+          <p className="eyebrow mb-1.5 text-brand-400">
             {eyebrow}
           </p>
         )}
-        <h2 className="text-lg font-bold tracking-tight text-white font-display">
+        <h2 className="text-[1.05rem] font-semibold tracking-tight text-white font-display">
           {title}
         </h2>
         {subtitle && (

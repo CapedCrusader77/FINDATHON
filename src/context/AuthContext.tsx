@@ -21,15 +21,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-const DEFAULT_USER: User = {
-  id: 'usr_admin',
-  name: 'Alex Morgan',
-  email: 'alex.morgan@workspace.io',
-  role: 'System Administrator',
-  workspace: 'Personal Files / Drive E:',
-  avatarInitials: 'AM'
-}
-
 const STORAGE_KEY = 'dedupeiq_auth_session'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -42,12 +33,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (stored) {
         setUser(JSON.parse(stored))
       } else {
-        // Auto-initialize with default session for seamless desktop utility experience
-        setUser(DEFAULT_USER)
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_USER))
+        // New visitors should see the landing page and choose how they enter.
+        setUser(null)
       }
     } catch {
-      setUser(DEFAULT_USER)
+      setUser(null)
     } finally {
       setIsLoading(false)
     }

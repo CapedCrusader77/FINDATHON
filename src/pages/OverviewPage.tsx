@@ -53,18 +53,19 @@ export default function OverviewPage() {
     return (
       <div className="space-y-6">
         {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1e2230] pb-5">
+        <div className="hero-glow flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b soft-divider pb-8">
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-white font-display">
-              Personal File Organizer
+            <div className="eyebrow mb-3 text-brand-400">A calmer way to clean up</div>
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-[-0.04em] text-white font-display">
+              Your files, less chaotic.
             </h2>
-            <p className="mt-1 text-xs text-slate-400">
-              Analyze directories to identify exact duplicates, resized photos, and cross-format document revisions.
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
+              Find the copies taking up space, keep the one that matters, and leave the rest safely untouched until you say so.
             </p>
           </div>
 
           <Link to="/scan">
-            <Button size="md" className="bg-brand-600 hover:bg-brand-500 text-white font-semibold">
+            <Button size="md" className="bg-brand-500 hover:bg-brand-400 text-[#241312] font-bold shadow-glow">
               <FolderOpen size={14} />
               <span>Scan Folder</span>
             </Button>
@@ -74,18 +75,18 @@ export default function OverviewPage() {
         {/* Empty State Banner */}
         <Card className="p-8 sm:p-12 text-center border-dashed border-[#272d3f] bg-[#11141d]">
           <div className="mx-auto max-w-md">
-            <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-brand-600/10 text-brand-400 border border-brand-500/20">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-500/10 text-brand-300 border border-brand-500/20 shadow-glow">
               <FolderOpen size={22} />
             </div>
-            <h3 className="mt-4 text-base font-bold text-white">No Files Scanned Yet</h3>
-            <p className="mt-1.5 text-xs text-slate-400 leading-relaxed">
-              Select a local folder on your workstation or enter a directory path to begin multi-modal duplicate detection.
+            <h3 className="mt-5 text-xl font-semibold tracking-tight text-white">Start with a little breathing room.</h3>
+            <p className="mt-2 text-sm text-slate-400 leading-6">
+              Select a folder and we’ll map the duplicates for you. Nothing is deleted automatically, and nothing leaves your device.
             </p>
             <div className="mt-5">
               <Link to="/scan">
                 <Button size="md" className="bg-brand-600 hover:bg-brand-500 text-white">
                   <FolderOpen size={14} />
-                  <span>Start Deduplication Scan</span>
+                  <span>Choose a folder</span>
                 </Button>
               </Link>
             </div>
@@ -133,27 +134,27 @@ export default function OverviewPage() {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1e2230] pb-5">
+      <div className="hero-glow flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b soft-divider pb-8">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-400" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-400">
-              Database Synced
+          <div className="mb-3 flex items-center gap-2">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,0.8)]" />
+            <span className="eyebrow text-emerald-300">
+              Everything is in its place
             </span>
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-white font-display">
-            Storage Overview & Candidate Clusters
+          <h2 className="max-w-2xl text-3xl sm:text-4xl font-semibold tracking-[-0.04em] text-white font-display">
+            Make space for what matters.
           </h2>
-          <p className="mt-0.5 text-xs text-slate-400">
-            Real-time duplicate metrics, recoverable storage analysis, and recommended master copies.
+          <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
+            DedupeIQ quietly finds the copies you forgot about, then lets you decide what stays. Your files never leave this machine.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <Link to="/scan">
-            <Button size="md" className="bg-brand-600 hover:bg-brand-500 text-white font-semibold">
+            <Button size="md" className="bg-brand-500 hover:bg-brand-400 text-[#241312] font-bold shadow-glow">
               <FolderOpen size={14} />
-              <span>Scan New Folder</span>
+              <span>Find hidden copies</span>
             </Button>
           </Link>
         </div>
@@ -220,11 +221,12 @@ function MetricCard({
   tone: 'blue' | 'purple' | 'amber' | 'green'
 }) {
   return (
-    <Card className="p-5 bg-[#11141d] border-[#1e2230]">
-      <div className="flex items-start justify-between">
+    <Card className="group relative overflow-hidden p-5 bg-[#151719] border-[#2a2e33] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#454b52] hover:shadow-glow">
+      <div className="absolute right-0 top-0 h-20 w-20 rounded-full bg-brand-500/5 blur-2xl transition-all group-hover:bg-brand-500/10" />
+      <div className="relative flex items-start justify-between">
         <div>
           <p className="text-xs font-medium text-slate-400">{label}</p>
-          <p className="mt-1 text-2xl font-bold font-mono tracking-tight text-white">{value}</p>
+          <p className="mt-2 text-3xl font-semibold font-display tracking-[-0.04em] text-white">{value}</p>
           <p className="mt-1 text-[11px] text-slate-400">{subtext}</p>
         </div>
 
