@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.dedupeiq/
+backend/.venv/
+.venv/
+__pycache__/
+*.pyc
+*.tsbuildinfo
+.env
+.DS_Store
+Thumbs.db
+.pytest_cache/
