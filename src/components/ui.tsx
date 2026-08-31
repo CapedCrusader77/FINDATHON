@@ -1,8 +1,8 @@
-import React, { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react'
+import React, { ButtonHTMLAttributes, HTMLAttributes, InputHTMLAttributes, ReactNode } from 'react'
 import { cn } from '../lib/utils'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'outline' | 'ghost' | 'danger' | 'gradient' | 'secondary'
+  variant?: 'default' | 'outline' | 'ghost' | 'danger' | 'secondary' | 'subtle'
   size?: 'xs' | 'sm' | 'md' | 'lg'
 }
 
@@ -15,23 +15,23 @@ export function Button({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f19] disabled:pointer-events-none disabled:opacity-40 select-none active:scale-[0.98] hover:-translate-y-px',
+        'inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0c0e14] disabled:pointer-events-none disabled:opacity-40 select-none cursor-pointer',
         variant === 'default' &&
-          'bg-indigo-600 text-white shadow-glow hover:bg-indigo-500 hover:shadow-indigo-500/25',
-        variant === 'gradient' &&
-          'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-glow hover:brightness-110',
+          'bg-brand-600 text-white hover:bg-brand-500 shadow-sm border border-brand-500/30',
         variant === 'secondary' &&
-          'bg-slate-800 text-slate-100 hover:bg-slate-700 hover:text-white border border-white/10',
+          'bg-[#1a1e2a] text-slate-200 hover:bg-[#222838] hover:text-white border border-[#272d3f]',
         variant === 'outline' &&
-          'border border-white/10 bg-slate-900/60 text-slate-200 hover:bg-white/10 hover:border-white/20 hover:text-white',
+          'border border-[#272d3f] bg-transparent text-slate-300 hover:bg-[#161a24] hover:text-white hover:border-[#373e54]',
         variant === 'ghost' &&
-          'text-slate-400 hover:bg-white/10 hover:text-white',
+          'text-slate-400 hover:bg-[#161a24] hover:text-slate-200',
+        variant === 'subtle' &&
+          'bg-brand-500/10 text-brand-300 border border-brand-500/20 hover:bg-brand-500/20',
         variant === 'danger' &&
-          'bg-rose-600/90 text-white hover:bg-rose-600 border border-rose-500/30 hover:shadow-[0_0_20px_-3px_rgba(244,63,94,0.4)]',
-        size === 'xs' && 'h-7 rounded-lg px-2.5 text-[11px]',
-        size === 'sm' && 'h-8.5 rounded-lg px-3.5 text-xs',
-        size === 'md' && 'h-10 rounded-xl px-4 text-sm',
-        size === 'lg' && 'h-12 rounded-xl px-6 text-sm font-semibold',
+          'bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 border border-rose-500/30 hover:text-rose-200',
+        size === 'xs' && 'h-7 rounded-md px-2.5 text-[11px]',
+        size === 'sm' && 'h-8.5 rounded-lg px-3 text-xs',
+        size === 'md' && 'h-9.5 rounded-lg px-4 text-xs font-semibold',
+        size === 'lg' && 'h-11 rounded-lg px-5 text-sm font-semibold',
         className
       )}
       {...props}
@@ -51,21 +51,21 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-lg px-2.5 py-1 text-[11px] font-semibold tracking-wide border transition-colors',
+        'inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold tracking-wide border',
         tone === 'neutral' &&
-          'bg-slate-800/80 text-slate-300 border-white/10',
+          'bg-[#1a1e29] text-slate-300 border-[#272c3d]',
         tone === 'blue' &&
-          'bg-blue-500/10 text-blue-400 border-blue-500/30',
+          'bg-blue-500/10 text-blue-400 border-blue-500/25',
         tone === 'green' &&
-          'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+          'bg-emerald-500/10 text-emerald-400 border-emerald-500/25',
         tone === 'amber' &&
-          'bg-amber-500/10 text-amber-300 border-amber-500/30',
+          'bg-amber-500/10 text-amber-300 border-amber-500/25',
         tone === 'purple' &&
-          'bg-purple-500/10 text-purple-300 border-purple-500/30',
+          'bg-indigo-500/10 text-indigo-300 border-indigo-500/25',
         tone === 'rose' &&
-          'bg-rose-500/10 text-rose-300 border-rose-500/30',
+          'bg-rose-500/10 text-rose-300 border-rose-500/25',
         tone === 'cyan' &&
-          'bg-cyan-500/10 text-cyan-300 border-cyan-500/30',
+          'bg-cyan-500/10 text-cyan-300 border-cyan-500/25',
         className
       )}
     >
@@ -82,12 +82,32 @@ export function Card({
   return (
     <div
       className={cn(
-        'rounded-2xl border border-white/10 bg-slate-900/60 backdrop-blur-xl shadow-card transition-all duration-200 hover:border-indigo-400/20 hover:shadow-panel',
+        'rounded-xl border border-[#222634] bg-[#11141d] shadow-subtle',
         className
       )}
       {...props}
     >
       {children}
+    </div>
+  )
+}
+
+export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+  error?: string
+}
+
+export function Input({ className, error, ...props }: InputProps) {
+  return (
+    <div className="w-full">
+      <input
+        className={cn(
+          'w-full rounded-lg border border-[#272d3f] bg-[#0c0e14] px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none transition-colors focus:border-brand-500 focus:ring-1 focus:ring-brand-500',
+          error && 'border-rose-500 focus:border-rose-500 focus:ring-rose-500',
+          className
+        )}
+        {...props}
+      />
+      {error && <p className="mt-1 text-[11px] text-rose-400">{error}</p>}
     </div>
   )
 }
@@ -104,18 +124,18 @@ export function SectionTitle({
   action?: ReactNode
 }) {
   return (
-    <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div className="mb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
       <div>
         {eyebrow && (
-          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-400">
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-brand-400">
             {eyebrow}
           </p>
         )}
-        <h2 className="text-xl font-bold tracking-tight text-white font-display">
+        <h2 className="text-lg font-bold tracking-tight text-white font-display">
           {title}
         </h2>
         {subtitle && (
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-0.5 text-xs text-slate-400">
             {subtitle}
           </p>
         )}

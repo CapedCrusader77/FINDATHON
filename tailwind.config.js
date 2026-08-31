@@ -6,15 +6,21 @@ export default {
     extend: {
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['Outfit', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'monospace'],
+        display: ['Outfit', '"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
       },
       colors: {
-        ink: '#0b0f19',
-        muted: '#94a3b8',
-        line: '#1e293b',
+        dark: {
+          bg: '#0c0e14',
+          surface: '#11141d',
+          card: '#161922',
+          elevated: '#1b1f2b',
+          border: '#222634',
+          borderSubtle: '#181b26',
+          muted: '#8b949e',
+          text: '#f0f3f6'
+        },
         brand: {
-          DEFAULT: '#6366f1',
           50: '#eef2ff',
           100: '#e0e7ff',
           200: '#c7d2fe',
@@ -24,29 +30,16 @@ export default {
           600: '#4f46e5',
           700: '#4338ca',
           800: '#3730a3',
-          900: '#312e81',
-          glow: '#818cf8',
-        },
-        surface: {
-          DEFAULT: '#111827',
-          card: 'rgba(17, 24, 39, 0.75)',
-          border: 'rgba(255, 255, 255, 0.08)',
-          hover: 'rgba(255, 255, 255, 0.05)',
+          900: '#312e81'
         }
       },
       boxShadow: {
-        panel: '0 12px 36px -4px rgba(0, 0, 0, 0.35)',
-        glow: '0 0 25px -3px rgba(99, 102, 241, 0.3)',
-        'glow-emerald': '0 0 25px -3px rgba(16, 185, 129, 0.3)',
-        'glow-amber': '0 0 25px -3px rgba(245, 158, 11, 0.3)',
-        card: '0 4px 20px -2px rgba(0, 0, 0, 0.25)',
-      },
-      backgroundImage: {
-        'radial-glow': 'radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15), transparent 70%)',
-        'subtle-grid': 'linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px)',
+        subtle: '0 1px 2px 0 rgba(0, 0, 0, 0.4)',
+        elevated: '0 4px 20px -2px rgba(0, 0, 0, 0.5)',
+        glow: '0 0 20px -4px rgba(99, 102, 241, 0.25)',
+        glowEmerald: '0 0 20px -4px rgba(16, 185, 129, 0.25)'
       }
     }
   },
   plugins: []
 }
-
