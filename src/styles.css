@@ -4,172 +4,148 @@
 
 @layer base {
   :root {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Plus Jakarta Sans", Inter, system-ui, sans-serif;
-    color: #f8fafc;
-    background: #08090d;
+    font-family: 'Plus Jakarta Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+    color: #f4f1eb;
+    background: #0f1012;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  html.light :root {
+    color: #0f172a;
+    background: #f8fafc;
   }
 
   body {
     margin: 0;
-    background-color: #08090d;
-    color: #f8fafc;
+    min-width: 320px;
+    background-color: #0f1012;
+    color: #f4f1eb;
     min-height: 100vh;
     overflow-x: hidden;
   }
 
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 9999px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
+  /* Desktop-grade slim scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.2);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.35);
+  }
 }
 
-/* ─── Glass Layers ─── */
-.glass {
-  background: rgba(255,255,255,0.042);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid rgba(255,255,255,0.10);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.12);
-}
-.glass-heavy {
-  background: rgba(14,18,28,0.72);
-  backdrop-filter: blur(42px) saturate(200%);
-  -webkit-backdrop-filter: blur(42px) saturate(200%);
-  border: 1px solid rgba(255,255,255,0.13);
-  box-shadow: 0 25px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18);
-}
-.glass-dock {
-  background: rgba(18,24,42,0.62);
-  backdrop-filter: blur(38px) saturate(210%);
-  -webkit-backdrop-filter: blur(38px) saturate(210%);
-  border: 1px solid rgba(255,255,255,0.17);
-  box-shadow: 0 20px 48px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.28);
+/* Restrained desktop card & panel styling */
+.desktop-panel {
+  background-color: #151719;
+  border: 1px solid #2a2e33;
 }
 
-/* ─── Fluid Rainbow Mesh Background ─── */
-.rainbow-mesh-bg {
-  position: fixed; inset: 0;
-  pointer-events: none; overflow: hidden; z-index: 0;
-}
-.mesh-blob {
-  position: absolute; border-radius: 9999px;
-  filter: blur(105px); opacity: 0.22; mix-blend-mode: screen;
-  will-change: transform;
-}
-.blob-1 {
-  top: -10%; left: 10%;
-  width: 60vw; height: 60vw;
-  background: radial-gradient(circle, #6366f1 0%, #a855f7 65%, transparent 100%);
-  animation: meshFloat 20s ease-in-out infinite alternate;
-}
-.blob-2 {
-  bottom: -18%; right: 5%;
-  width: 65vw; height: 65vw;
-  background: radial-gradient(circle, #ec4899 0%, #f43f5e 50%, transparent 100%);
-  animation: meshFloat 26s ease-in-out infinite alternate-reverse;
-}
-.blob-3 {
-  top: 30%; left: 48%;
-  width: 48vw; height: 48vw;
-  background: radial-gradient(circle, #06b6d4 0%, #3b82f6 60%, transparent 100%);
-  animation: meshFloat 18s ease-in-out infinite alternate;
-}
-.blob-4 {
-  top: 55%; left: 3%;
-  width: 42vw; height: 42vw;
-  background: radial-gradient(circle, #f59e0b 0%, #10b981 60%, transparent 100%);
-  animation: meshFloat 23s ease-in-out infinite alternate-reverse;
-}
-@keyframes meshFloat {
-  0%   { transform: translate(0px, 0px) scale(1) rotate(0deg); }
-  33%  { transform: translate(38px,-28px) scale(1.12) rotate(12deg); }
-  66%  { transform: translate(-22px, 32px) scale(0.94) rotate(-8deg); }
-  100% { transform: translate(25px, -20px) scale(1.07) rotate(18deg); }
+.desktop-card {
+  background-color: #1b1d20;
+  border: 1px solid #2a2e33;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
-/* ─── macOS Traffic Lights (both naming conventions supported) ─── */
-.tl-close, .traffic-light-close    { background: #ff5f56; border: 1px solid rgba(0,0,0,0.15); }
-.tl-minimize, .traffic-light-minimize { background: #ffbd2e; border: 1px solid rgba(0,0,0,0.15); }
-.tl-expand, .traffic-light-expand   { background: #27c93f; border: 1px solid rgba(0,0,0,0.15); }
-
-/* ─── Shimmer Loading Animation ─── */
-@keyframes shimmer {
-  0%   { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
-}
-.shimmer {
-  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
-  background-size: 800px 100%;
-  animation: shimmer 1.8s infinite linear;
+.desktop-card:hover {
+  background-color: #202327;
+  border-color: #454b52;
 }
 
-/* ─── Glow Button Effects ─── */
-.glow-blue {
-  box-shadow: 0 0 22px -4px rgba(59,130,246,0.55), 0 0 8px -2px rgba(99,102,241,0.4);
-}
-.glow-emerald { box-shadow: 0 0 22px -4px rgba(16,185,129,0.55); }
-.glow-purple  { box-shadow: 0 0 22px -4px rgba(168,85,247,0.55); }
-
-/* ─── Dock Icon Hover Magnification ─── */
-.dock-icon:hover { transform: translateY(-6px) scale(1.22); }
-.dock-icon { transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1); }
-
-/* ─── Pulse Ping for Indicators ─── */
-@keyframes ping-soft {
-  0%,100% { opacity:1; transform:scale(1); }
-  50%      { opacity:0.6; transform:scale(1.5); }
-}
-.ping-soft { animation: ping-soft 2.2s cubic-bezier(0.4,0,0.6,1) infinite; }
-
-/* ─── Fade slide in from bottom ─── */
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(10px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-.fade-up { animation: fadeUp 0.3s ease-out both; }
-
-/* ─── Radial gradient for metric cards ─── */
-.metric-card-glow::after {
-  content:''; position:absolute; inset:0;
-  border-radius:inherit; pointer-events:none;
-  background: radial-gradient(ellipse at top left, rgba(255,255,255,0.05) 0%, transparent 70%);
+.desktop-table-header {
+  background-color: #151719;
+  border-bottom: 1px solid #2a2e33;
 }
 
-/* ─── Animated Progress Bar ─── */
-@keyframes progressPulse {
-  0%,100% { opacity:1; }
-  50%     { opacity:0.7; }
-}
-.progress-pulse { animation: progressPulse 1.6s ease-in-out infinite; }
-
-/* ─── Smooth skeleton shimmer ─── */
-.skeleton {
-  background: linear-gradient(110deg, rgba(255,255,255,0.02) 30%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.02) 70%);
-  background-size: 300% 100%;
-  animation: shimmer 1.6s infinite;
+.desktop-table-row {
+  border-bottom: 1px solid #202327;
+  transition: background-color 0.1s ease;
 }
 
-/* ─── Counter animation class (used with JS) ─── */
-.counting { transition: all 0.8s cubic-bezier(0.34,1.56,0.64,1); }
-
-/* ─── Scroll snap for feature carousel ─── */
-.snap-x-mandatory { scroll-snap-type: x mandatory; }
-.snap-start       { scroll-snap-align: start; }
-
-/* ─── Auth Input Focus Glow ─── */
-.input-glow:focus {
-  outline: none;
-  border-color: rgba(99,102,241,0.7);
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.18), 0 0 18px rgba(59,130,246,0.18);
+/* The visual language: a warm graphite canvas, quiet depth, and one human accent. */
+.app-canvas {
+  background:
+    radial-gradient(circle at 76% -8%, rgba(248, 117, 103, 0.10), transparent 30rem),
+    radial-gradient(circle at 18% 15%, rgba(138, 219, 177, 0.045), transparent 24rem),
+    #0f1012;
 }
 
-/* ─── Reduce motion ─── */
+.app-sidebar {
+  background: rgba(20, 22, 24, 0.92);
+  border-color: #292d32;
+  box-shadow: 12px 0 42px rgba(0, 0, 0, 0.13);
+  backdrop-filter: blur(18px);
+}
+
+.app-topbar {
+  background: rgba(15, 16, 18, 0.78);
+  border-color: rgba(54, 59, 64, 0.72);
+}
+
+.hero-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-glow::after {
+  content: '';
+  position: absolute;
+  top: -8rem;
+  right: 8%;
+  width: 20rem;
+  height: 20rem;
+  border-radius: 9999px;
+  background: rgba(248, 117, 103, 0.075);
+  filter: blur(70px);
+  pointer-events: none;
+}
+
+.eyebrow {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+
+.soft-divider {
+  border-color: rgba(255, 255, 255, 0.075);
+}
+
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+}
+
+/* Keep legacy page-level utility tokens on the same visual system while the
+   individual surfaces are gradually refined. */
+body .bg-\[\#0c0e14\] { background-color: #0f1012 !important; }
+body .bg-\[\#0f121a\] { background-color: #131517 !important; }
+body .bg-\[\#11141d\] { background-color: #151719 !important; }
+body .bg-\[\#161922\] { background-color: #1b1d20 !important; }
+body .bg-\[\#1a1e29\] { background-color: #202327 !important; }
+body .bg-\[\#1b1f2b\] { background-color: #23262a !important; }
+body .bg-\[\#222738\] { background-color: #292d32 !important; }
+body .border-\[\#1e2230\] { border-color: #292d32 !important; }
+body .border-\[\#222634\] { border-color: #2a2e33 !important; }
+body .border-\[\#272d3f\] { border-color: #343a40 !important; }
+
+.desktop-table-row:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .mesh-blob, .shimmer, .skeleton, .ping-soft, .progress-pulse {
-    animation: none !important;
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

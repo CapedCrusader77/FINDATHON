@@ -1,112 +1,62 @@
 import React, { useState, useEffect, useMemo, ReactNode } from 'react'
 import { NavLink, useLocation, useNavigate, Link } from 'react-router-dom'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
 import {
-  LayoutDashboard, FolderOpen, Copy as CopyIcon, Image as ImageIcon,
-  FileText, Archive, Clock3, Sliders, Sparkles, Search,
-  Plus, ShieldCheck, LogOut, ChevronRight, HardDrive,
-  Wifi, BatteryCharging, X
+  LayoutDashboard,
+  FolderOpen,
+  Copy as CopyIcon,
+  Image as ImageIcon,
+  FileText,
+  Archive,
+  Clock3,
+  Sliders,
+  Sparkles,
+  Search,
+  Plus,
+  ShieldCheck,
+  PanelLeftClose,
+  PanelLeftOpen,
+  LogOut,
+  ChevronRight,
+  HardDrive,
+  Menu,
+  X,
+  User as UserIcon
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { fetchGroups, fetchDashboard, fetchQuarantine } from '../lib/api'
-import { DuplicateGroup, DashboardData, QuarantineItem } from '../types'
+import { fetchGroups, fetchDashboard } from '../lib/api'
+import { DuplicateGroup, DashboardData } from '../types'
 import { formatBytes } from '../lib/utils'
 import { Button, Badge } from './ui'
 
-const dockItems = [
-  { to: '/', label: 'Overview', icon: LayoutDashboard, gradient: 'from-blue-500 to-indigo-600' },
-  { to: '/scan', label: 'Scan Engine', icon: FolderOpen, gradient: 'from-indigo-500 to-purple-600' },
-  { to: '/groups', label: 'All Clusters', icon: CopyIcon, gradient: 'from-purple-500 to-pink-600' },
-  { to: '/images', label: 'Photos', icon: ImageIcon, gradient: 'from-pink-500 to-rose-600' },
-  { to: '/documents', label: 'Documents', icon: FileText, gradient: 'from-amber-500 to-orange-600' },
-  { to: '/quarantine', label: 'Quarantine', icon: Archive, gradient: 'from-emerald-500 to-teal-600', badgeKey: 'quarantine' },
-  { to: '/history', label: 'History', icon: Clock3, gradient: 'from-cyan-500 to-blue-600' },
-  { to: '/settings', label: 'Settings', icon: Sliders, gradient: 'from-slate-500 to-slate-700' },
-]
-
-function DockIcon({ item, quarantineCount }: { item: typeof dockItems[0], quarantineCount: number }) {
-  const location = useLocation()
-  const [hovered, setHovered] = useState(false)
-  const isActive = item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to)
-  const Icon = item.icon
-  const badgeCount = item.badgeKey === 'quarantine' ? quarantineCount : 0
-
-  return (
-    <div className="relative flex flex-col items-center" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
-      <AnimatePresence>
-        {hovered && (
-          <motion.div
-            initial={{ opacity: 0, y: 6, scale: 0.85 }}
-            animate={{ opacity: 1, y: -4, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.85 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            className="absolute -top-9 rounded-lg border border-white/[0.16] bg-[#0c101d]/95 px-2.5 py-1 text-[11px] font-semibold text-white shadow-xl backdrop-blur-xl pointer-events-none whitespace-nowrap z-50"
-          >
-            {item.label}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <NavLink
-        to={item.to}
-        end={item.to === '/'}
-        className="relative"
-      >
-        <motion.div
-          whileHover={{ y: -7, scale: 1.22 }}
-          whileTap={{ scale: 0.91 }}
-          transition={{ type: 'spring', stiffness: 420, damping: 20 }}
-          className={`relative grid h-12 w-12 place-items-center rounded-2xl transition-all duration-150 ${
-            isActive
-              ? `bg-gradient-to-br ${item.gradient} text-white shadow-[0_0_20px_rgba(99,102,241,0.35)]`
-              : 'bg-white/[0.07] text-slate-300 hover:bg-white/[0.14] hover:text-white border border-white/[0.09]'
-          }`}
-        >
-          <Icon size={21} />
-          {badgeCount > 0 && (
-            <motion.span
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="absolute -top-1.5 -right-1.5 grid h-5 w-5 place-items-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-lg"
-            >
-              {badgeCount}
-            </motion.span>
-          )}
-        </motion.div>
-      </NavLink>
-
-      <motion.span
-        animate={{ opacity: isActive ? 1 : 0, scale: isActive ? 1 : 0 }}
-        className="mt-1 h-1 w-1 rounded-full bg-white shadow-[0_0_5px_#fff]"
-      />
-    </div>
-  )
+interface AppShellProps {
+  children: ReactNode
 }
 
-export default function AppShell({ children }: { children: ReactNode }) {
+const navItems = [
+  { to: '/', label: 'Overview', icon: LayoutDashboard },
+  { to: '/scan', label: 'Intelligent Scan', icon: FolderOpen },
+  { to: '/groups', label: 'Duplicate Groups', icon: CopyIcon },
+  { to: '/images', label: 'Image Duplicates', icon: ImageIcon },
+  { to: '/documents', label: 'Document Revisions', icon: FileText }
+]
+
+const managementItems = [
+  { to: '/quarantine', label: 'Quarantine Bin', icon: Archive },
+  { to: '/history', label: 'Scan History', icon: Clock3 },
+  { to: '/settings', label: 'Algorithm Settings', icon: Sliders }
+]
+
+export default function AppShell({ children }: AppShellProps) {
   const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
+  const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [time, setTime] = useState(new Date())
-
-  useEffect(() => {
-    const t = setInterval(() => setTime(new Date()), 1000)
-    return () => clearInterval(t)
-  }, [])
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setSearchOpen(p => !p) }
-      if (e.key === 'Escape') setSearchOpen(false)
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [])
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
 
   const { data: groups = [] } = useQuery<DuplicateGroup[]>({
     queryKey: ['groups', user?.email],
@@ -116,226 +66,308 @@ export default function AppShell({ children }: { children: ReactNode }) {
     queryKey: ['dashboard', user?.email],
     queryFn: () => fetchDashboard(user?.email)
   })
-  const { data: quarantine = [] } = useQuery<QuarantineItem[]>({
-    queryKey: ['quarantine', user?.email],
-    queryFn: () => fetchQuarantine(user?.email)
-  })
 
-  const currentNav = dockItems.find(item =>
-    item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to)
+  // Keyboard shortcut Cmd/Ctrl + K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen(prev => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  // Page title mapping
+  const currentNav = [...navItems, ...managementItems].find(
+    item => item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to)
   )
+  const pageTitle = currentNav?.label || 'Workspace Review'
 
+  // Filtered search results
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return []
     const q = searchQuery.toLowerCase()
     return groups.filter(g =>
-      g.title.toLowerCase().includes(q) || g.files.some(f => f.name.toLowerCase().includes(q))
+      g.title.toLowerCase().includes(q) ||
+      g.files.some(f => f.name.toLowerCase().includes(q) || f.path.toLowerCase().includes(q))
     )
   }, [groups, searchQuery])
 
   return (
-    <div className="relative min-h-screen bg-[#08090d] text-[#f8fafc] flex flex-col overflow-x-hidden pb-28">
-      {/* Ambient mesh */}
-      <div className="rainbow-mesh-bg">
-        <div className="mesh-blob blob-1" />
-        <div className="mesh-blob blob-2" />
-        <div className="mesh-blob blob-3" />
-        <div className="mesh-blob blob-4" />
-      </div>
+    <div className="app-canvas min-h-screen text-[#f4f1eb] flex flex-col selection:bg-brand-500/30 selection:text-brand-200">
+      {/* Mobile Drawer Backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
 
-      {/* macOS Top Bar */}
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="sticky top-0 z-30 flex h-12 items-center justify-between border-b border-white/[0.08] bg-[#08090d]/75 px-5 sm:px-8 backdrop-blur-2xl"
+      {/* Sidebar */}
+      <aside
+        className={`${
+          collapsed ? 'w-16' : 'w-64'
+        } ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        } app-sidebar fixed inset-y-0 left-0 z-50 flex flex-col border-r transition-all duration-200 ease-out`}
       >
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full tl-close cursor-pointer hover:scale-110 transition-transform" onClick={logout} title="Sign out" />
-            <span className="h-3 w-3 rounded-full tl-minimize cursor-pointer hover:scale-110 transition-transform" />
-            <span className="h-3 w-3 rounded-full tl-expand cursor-pointer hover:scale-110 transition-transform" />
-          </div>
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400">
-            <span className="text-slate-600">|</span>
-            <motion.span
-              key={currentNav?.label}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="font-semibold text-white text-xs"
-            >
-              {currentNav?.label ?? 'Workspace'}
-            </motion.span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          {/* Live clock */}
-          <span className="hidden md:block font-mono text-[11px] text-slate-400 tabular-nums">
-            {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-          </span>
-
-          {/* Spotlight */}
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setSearchOpen(true)}
-            className="flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.04] px-3 py-1.5 text-xs text-slate-300 hover:border-white/[0.22] hover:bg-white/[0.08] transition-all backdrop-blur-md"
-          >
-            <Search size={13} className="text-slate-400" />
-            <span className="hidden sm:inline">Spotlight...</span>
-            <kbd className="hidden sm:inline-block rounded-md border border-white/[0.12] bg-white/[0.06] px-1.5 text-[9px] font-mono">⌘K</kbd>
-          </motion.button>
-
-          {/* Reclaimable badge */}
-          {dashboard && dashboard.recoverable > 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="hidden md:flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-3 py-1 text-[11px] font-semibold text-emerald-300 backdrop-blur-md"
-            >
-              <HardDrive size={11} />
-              {formatBytes(dashboard.recoverable)} free
-            </motion.div>
-          )}
-
-          <Link to="/scan">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs h-8 shadow-[0_0_18px_rgba(59,130,246,0.4)] rounded-xl">
-                <Plus size={13} /><span className="hidden sm:inline">Scan</span>
-              </Button>
-            </motion.div>
+        {/* Brand Header */}
+        <div className="flex h-16 items-center justify-between px-4 border-b border-[#292d32]">
+          <Link to="/" className="flex items-center gap-2.5 min-w-0">
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-brand-500 text-[#221311] shadow-glow">
+              <Sparkles size={16} strokeWidth={2.5} />
+            </div>
+            {!collapsed && (
+              <div className="truncate">
+                <span className="font-display font-bold text-[0.92rem] tracking-tight text-white">
+                  Dedupe<span className="text-brand-400">IQ</span>
+                </span>
+                <span className="ml-2 rounded-full border border-white/10 px-1.5 py-0.5 text-[8px] uppercase font-mono tracking-wider text-slate-400">
+                  local
+                </span>
+              </div>
+            )}
           </Link>
 
-          {/* Avatar + logout */}
-          <div className="flex items-center gap-2 pl-2 border-l border-white/[0.10]">
-            <motion.div
-              whileHover={{ scale: 1.08 }}
-              title={user?.email}
-              className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-[11px] font-bold shadow-sm cursor-pointer"
-            >
-              {user?.avatarInitials ?? 'US'}
-            </motion.div>
-            <motion.button
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.94 }}
-              onClick={logout}
-              className="grid h-7 w-7 place-items-center rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 transition-colors"
-              title="Sign Out"
-            >
-              <LogOut size={13} />
-            </motion.button>
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="hidden lg:grid h-7 w-7 place-items-center rounded-lg text-slate-500 hover:bg-white/5 hover:text-white transition-colors"
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+          </button>
+
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden text-slate-400 hover:text-white"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Navigation Content */}
+        <div className="flex-1 overflow-y-auto px-3 py-5 space-y-7">
+          {/* Main Navigation */}
+          <div>
+            {!collapsed && (
+              <p className="eyebrow px-2 pb-2 text-slate-500">
+                Workspace
+              </p>
+            )}
+            <nav className="space-y-0.5">
+              {navItems.map(item => {
+                const Icon = item.icon
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.to === '/'}
+                    className={({ isActive }) =>
+                      `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-medium transition-all ${
+                        isActive
+                          ? 'bg-brand-500/12 text-brand-200 font-semibold shadow-[inset_0_0_0_1px_rgba(248,117,103,0.16)]'
+                          : 'text-slate-400 hover:bg-white/[0.045] hover:text-slate-200'
+                      }`
+                    }
+                  >
+                    <Icon size={16} className="shrink-0" />
+                    {!collapsed && <span className="truncate">{item.label}</span>}
+                  </NavLink>
+                )
+              })}
+            </nav>
+          </div>
+
+          {/* Management Navigation */}
+          <div>
+            {!collapsed && (
+              <p className="eyebrow px-2 pb-2 text-slate-500">
+                Operations
+              </p>
+            )}
+            <nav className="space-y-0.5">
+              {managementItems.map(item => {
+                const Icon = item.icon
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-medium transition-all ${
+                        isActive
+                          ? 'bg-brand-500/12 text-brand-200 font-semibold shadow-[inset_0_0_0_1px_rgba(248,117,103,0.16)]'
+                          : 'text-slate-400 hover:bg-white/[0.045] hover:text-slate-200'
+                      }`
+                    }
+                  >
+                    <Icon size={16} className="shrink-0" />
+                    {!collapsed && <span className="truncate">{item.label}</span>}
+                  </NavLink>
+                )
+              })}
+            </nav>
           </div>
         </div>
-      </motion.header>
 
-      {/* Page Content */}
-      <main className="relative z-10 flex-1 p-5 sm:p-8 max-w-7xl w-full mx-auto">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+        {/* User Footer Profile */}
+        <div className="border-t border-[#292d32] p-3 bg-black/10">
+          <div className="flex items-center justify-between rounded-xl p-2 hover:bg-white/[0.045] transition-colors">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#d9c5a7] text-xs font-bold text-[#2a211a]">
+                {user?.avatarInitials || 'US'}
+              </div>
+              {!collapsed && (
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-semibold text-white leading-tight">{user?.name || 'Local User'}</p>
+                  <p className="truncate text-[10px] text-slate-400 leading-tight mt-0.5">{user?.role || 'Administrator'}</p>
+                </div>
+              )}
+            </div>
 
-      {/* Floating Dock */}
-      <motion.div
-        initial={{ y: 30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.4, type: 'spring', stiffness: 280, damping: 24 }}
-        className="fixed bottom-5 inset-x-0 z-40 flex justify-center px-4 pointer-events-none"
-      >
-        <div className="pointer-events-auto flex items-end gap-2 rounded-2xl glass-dock px-3 py-2.5 shadow-dock">
-          {dockItems.map(item => (
-            <DockIcon key={item.to} item={item} quarantineCount={quarantine.length} />
-          ))}
-          {/* Divider + Logout */}
-          <div className="h-10 w-px bg-white/[0.12] mx-1" />
-          <motion.button
-            whileHover={{ y: -7, scale: 1.22 }}
-            whileTap={{ scale: 0.91 }}
-            onClick={logout}
-            title="Sign Out"
-            className="grid h-12 w-12 place-items-center rounded-2xl bg-white/[0.07] border border-white/[0.09] text-slate-400 hover:text-rose-400 hover:bg-rose-500/20 transition-colors"
-          >
-            <LogOut size={20} />
-          </motion.button>
+            {!collapsed && (
+              <button
+                onClick={logout}
+                className="grid h-6 w-6 place-items-center rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                title="Sign Out"
+              >
+                <LogOut size={13} />
+              </button>
+            )}
+          </div>
         </div>
-      </motion.div>
+      </aside>
 
-      {/* Spotlight Search Modal */}
-      <AnimatePresence>
-        {searchOpen && (
-          <>
-            <motion.div
-              key="overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md"
-              onClick={() => setSearchOpen(false)}
-            />
-            <motion.div
-              key="panel"
-              initial={{ opacity: 0, scale: 0.94, y: -12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: -12 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-              className="fixed left-1/2 top-20 z-50 w-full max-w-xl -translate-x-1/2 overflow-hidden rounded-2xl border border-white/[0.18] bg-[#0f1422]/92 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.7)] backdrop-blur-3xl"
+      {/* Main Content Area */}
+      <div className={`${collapsed ? 'lg:pl-16' : 'lg:pl-64'} flex-1 flex flex-col transition-all duration-200 ease-out min-h-screen`}>
+        {/* Desktop Top Bar */}
+        <header className="app-topbar sticky top-0 z-30 flex h-16 items-center justify-between border-b px-5 sm:px-8 backdrop-blur-md">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="lg:hidden grid h-8 w-8 place-items-center rounded border border-[#222634] text-slate-400 hover:text-white"
             >
-              <div className="flex items-center border-b border-white/[0.10] px-4 py-3.5 gap-3">
-                <Search size={18} className="text-blue-400 shrink-0" />
-                <input
-                  autoFocus
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search clusters, files, or formats..."
-                  className="flex-1 bg-transparent text-sm text-white placeholder-slate-500 outline-none"
-                />
-                <button onClick={() => setSearchOpen(false)} className="grid h-6 w-6 place-items-center rounded-md border border-white/[0.12] bg-white/[0.05] text-slate-400 hover:text-white text-[10px] font-mono">
-                  <X size={13} />
-                </button>
+              <Menu size={16} />
+            </button>
+            
+            {/* Breadcrumb / Title */}
+            <div className="flex items-center gap-2 text-xs">
+              <span className="hidden items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.035] px-2.5 py-1 text-[10px] font-medium text-slate-400 sm:flex"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Personal workspace</span>
+              <span className="text-slate-600 hidden sm:inline">/</span>
+              <h1 className="font-bold text-sm text-white tracking-tight">
+                {pageTitle}
+              </h1>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Global Search Input Trigger */}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="flex items-center gap-2.5 rounded-xl border border-[#30353b] bg-white/[0.035] px-3.5 py-2 text-xs text-slate-400 hover:border-[#555c64] hover:text-slate-200 transition-colors"
+            >
+              <Search size={13} className="text-slate-400" />
+              <span className="hidden sm:inline">Search clusters or filenames...</span>
+              <span className="sm:hidden">Search</span>
+              <kbd className="hidden sm:inline-block rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[9px] font-mono text-slate-500">
+                ⌘K
+              </kbd>
+            </button>
+
+            {/* Reclaimable Indicator */}
+            {dashboard && dashboard.recoverable > 0 && (
+              <div className="hidden md:flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-[11px] font-semibold text-emerald-300">
+                <HardDrive size={12} />
+                <span>{formatBytes(dashboard.recoverable)} Recoverable</span>
               </div>
-              <div className="max-h-72 overflow-y-auto p-2">
-                <AnimatePresence>
-                  {searchResults.length > 0 ? (
-                    searchResults.map((group, i) => (
-                      <motion.button
-                        key={group.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.04 }}
-                        onClick={() => { navigate(`/groups/${group.id}`); setSearchOpen(false) }}
-                        className="flex w-full items-center justify-between rounded-xl p-3 text-left hover:bg-white/[0.09] transition-colors group"
-                      >
-                        <div className="min-w-0 pr-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-white truncate">{group.title}</span>
-                            <Badge tone="blue">{group.type}</Badge>
-                          </div>
-                          <p className="mt-0.5 text-[11px] text-slate-400">{group.files.length} copies · {formatBytes(group.recoverable)} reclaimable</p>
+            )}
+
+            {/* Quick Action Button */}
+            <Link to="/scan">
+              <Button size="sm" className="bg-brand-500 hover:bg-brand-400 text-[#241312] font-bold text-xs h-9 shadow-glow">
+                <Plus size={13} />
+                <span className="hidden sm:inline">Scan Folder</span>
+              </Button>
+            </Link>
+          </div>
+        </header>
+
+        {/* Page Content Container */}
+        <main className="relative flex-1 p-5 sm:p-8 lg:p-10 max-w-[1550px] w-full mx-auto">
+          <div className="grain absolute inset-0" />
+          <div className="relative">
+          {children}
+          </div>
+        </main>
+      </div>
+
+      {/* Global Cmd+K Search Modal */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-20">
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm"
+            onClick={() => setSearchOpen(false)}
+          />
+          <div className="relative w-full max-w-xl overflow-hidden rounded-xl border border-[#272d3f] bg-[#11141d] shadow-elevated">
+            <div className="flex items-center border-b border-[#1e2230] px-4 py-3">
+              <Search size={16} className="text-brand-400 mr-3 shrink-0" />
+              <input
+                autoFocus
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search duplicate clusters by file name or path..."
+                className="flex-1 bg-transparent text-xs text-white placeholder-slate-500 outline-none"
+              />
+              <button
+                onClick={() => setSearchOpen(false)}
+                className="text-slate-400 hover:text-white text-xs font-mono px-1.5 py-0.5 rounded border border-[#222634]"
+              >
+                ESC
+              </button>
+            </div>
+
+            <div className="max-h-80 overflow-y-auto p-2">
+              {searchResults.length > 0 ? (
+                <div className="space-y-1">
+                  {searchResults.map(group => (
+                    <button
+                      key={group.id}
+                      onClick={() => {
+                        navigate(`/groups/${group.id}`)
+                        setSearchOpen(false)
+                      }}
+                      className="flex w-full items-center justify-between rounded-lg p-2.5 text-left hover:bg-[#1c2130] transition-colors"
+                    >
+                      <div className="min-w-0 pr-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-white truncate">{group.title}</span>
+                          <Badge tone={group.type === 'Exact' ? 'blue' : group.type === 'Near image' ? 'purple' : 'green'}>
+                            {group.type}
+                          </Badge>
                         </div>
-                        <ChevronRight size={14} className="text-slate-500 group-hover:text-white shrink-0 transition-transform group-hover:translate-x-0.5" />
-                      </motion.button>
-                    ))
-                  ) : (
-                    <div className="p-8 text-center text-xs text-slate-400">
-                      {searchQuery.trim() ? 'No matching clusters found.' : 'Start typing to search across indexed files and clusters.'}
-                    </div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                        <p className="mt-0.5 text-[10px] text-slate-400 truncate">
+                          {group.files.length} copies · {formatBytes(group.recoverable)} recoverable
+                        </p>
+                      </div>
+                      <ChevronRight size={14} className="text-slate-400 shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              ) : searchQuery.trim() ? (
+                <div className="p-6 text-center text-xs text-slate-400">
+                  No duplicate clusters found matching "{searchQuery}"
+                </div>
+              ) : (
+                <div className="p-6 text-center text-xs text-slate-400">
+                  Type to search across indexed duplicates, photos, and documents.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

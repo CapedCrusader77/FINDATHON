@@ -13,16 +13,14 @@ import {
   Zap,
   RefreshCw,
   ChevronRight,
-  CheckCircle2,
-  Sparkles,
-  Layers,
-  Cpu
+  CheckCircle2
 } from 'lucide-react'
 import { fetchDashboard, fetchGroups, fetchHistory } from '../lib/api'
 import { formatBytes, formatDate } from '../lib/utils'
 import { DashboardData, DuplicateGroup, ScanRecord } from '../types'
-import { Card, SectionTitle, Button, Badge, TrafficLights } from '../components/ui'
+import { Card, SectionTitle, Button, Badge } from '../components/ui'
 import RecoverySimulator from '../components/RecoverySimulator'
+
 import { useAuth } from '../context/AuthContext'
 
 export default function OverviewPage() {
@@ -43,12 +41,13 @@ export default function OverviewPage() {
     queryFn: () => fetchHistory(user?.email)
   })
 
+
   if (isLoading || !dashboard) {
     return (
       <div className="flex h-64 items-center justify-center">
         <div className="flex items-center gap-2.5 text-xs text-slate-400 font-mono">
-          <RefreshCw size={15} className="animate-spin text-blue-400" />
-          <span>Syncing macOS Pro Storage Index...</span>
+          <RefreshCw size={14} className="animate-spin text-brand-400" />
+          <span>Connecting to local storage database...</span>
         </div>
       </div>
     )
@@ -58,83 +57,77 @@ export default function OverviewPage() {
   if (dashboard.filesScanned === 0) {
     return (
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
+        {/* Top Header */}
+        <div className="hero-glow flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b soft-divider pb-8">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-400 font-mono">
-                Neural File Intelligence
-              </span>
-            </div>
-            <h2 className="text-2xl font-bold tracking-tight text-white font-display">
-              Workspace Overview & Clean Engine
+            <div className="eyebrow mb-3 text-brand-400">A calmer way to clean up</div>
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-[-0.04em] text-white font-display">
+              Your files, less chaotic.
             </h2>
-            <p className="mt-0.5 text-xs text-slate-400">
-              Analyze directories to identify exact clones, burst photos, and cross-format document revisions.
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
+              Find the copies taking up space, keep the one that matters, and leave the rest safely untouched until you say so.
             </p>
           </div>
 
           <Link to="/scan">
-            <Button size="md" className="bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-glowBlue rounded-xl">
+            <Button size="md" className="bg-brand-500 hover:bg-brand-400 text-[#241312] font-bold shadow-glow">
               <FolderOpen size={14} />
-              <span>Scan Directory</span>
+              <span>Scan Folder</span>
             </Button>
           </Link>
         </div>
 
-        {/* Empty State Card */}
-        <Card className="p-8 sm:p-14 text-center border-dashed border-white/[0.15] bg-white/[0.02]">
+        {/* Empty State Banner */}
+        <Card className="p-8 sm:p-12 text-center border-dashed border-[#272d3f] bg-[#11141d]">
           <div className="mx-auto max-w-md">
-            <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-glowBlue">
-              <FolderOpen size={26} />
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-500/10 text-brand-300 border border-brand-500/20 shadow-glow">
+              <FolderOpen size={22} />
             </div>
-            <h3 className="mt-5 text-lg font-bold text-white">No Files Indexed In This Workspace</h3>
-            <p className="mt-1.5 text-xs text-slate-400 leading-relaxed">
-              Select a local folder on your computer or provide a system directory path to begin multi-modal duplicate clustering.
+            <h3 className="mt-5 text-xl font-semibold tracking-tight text-white">Start with a little breathing room.</h3>
+            <p className="mt-2 text-sm text-slate-400 leading-6">
+              Select a folder and we’ll map the duplicates for you. Nothing is deleted automatically, and nothing leaves your device.
             </p>
-            <div className="mt-6 flex justify-center">
+            <div className="mt-5">
               <Link to="/scan">
-                <Button size="md" className="bg-blue-600 hover:bg-blue-500 text-white shadow-glowBlue rounded-xl">
-                  <Sparkles size={14} />
-                  <span>Start Deduplication Scan</span>
-                  <ArrowRight size={14} />
+                <Button size="md" className="bg-brand-600 hover:bg-brand-500 text-white">
+                  <FolderOpen size={14} />
+                  <span>Choose a folder</span>
                 </Button>
               </Link>
             </div>
           </div>
         </Card>
 
-        {/* Pipeline Specs Grid */}
+        {/* Architecture & Guarantee Grid */}
         <div className="grid gap-5 md:grid-cols-2">
-          <PipelineArchitectureCard onRefresh={refetch} />
+          <PipelineCard onRefresh={refetch} />
 
-          <Card className="p-6 flex flex-col justify-between">
+          <Card className="p-5 bg-[#11141d] flex flex-col justify-between">
             <div>
               <SectionTitle
-                eyebrow="Integrity Guarantee"
-                title="100% On-Device Neural Processing"
-                subtitle="All file operations execute locally in sandboxed memory."
+                eyebrow="Privacy & Integrity"
+                title="100% Local-First Execution"
+                subtitle="All file operations execute on your device."
               />
-              <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
-                <p className="flex items-start gap-2.5">
-                  <CheckCircle2 size={15} className="text-emerald-400 mt-0.5 shrink-0" />
-                  <span>SHA-256 cryptographic fast hashing and perceptual visual fingerprints stay on local disk.</span>
+              <div className="space-y-2.5 text-xs text-slate-300 leading-relaxed">
+                <p className="flex items-start gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" />
+                  <span>SHA-256 cryptographic fast hashing and perceptual fingerprints stay in local memory.</span>
                 </p>
-                <p className="flex items-start gap-2.5">
-                  <CheckCircle2 size={15} className="text-emerald-400 mt-0.5 shrink-0" />
-                  <span>Cross-format DOCX, PDF, and Markdown text embeddings normalized via localized NLP.</span>
+                <p className="flex items-start gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" />
+                  <span>MongoDB Atlas holds only cluster metadata and similarity metrics.</span>
                 </p>
-                <p className="flex items-start gap-2.5">
-                  <CheckCircle2 size={15} className="text-emerald-400 mt-0.5 shrink-0" />
-                  <span>Non-destructive 30-day soft quarantine staging with instant 1-click restore.</span>
+                <p className="flex items-start gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" />
+                  <span>Soft quarantine staging safeguards files for 30 days before permanent deletion.</span>
                 </p>
               </div>
             </div>
 
-            <div className="mt-5 border-t border-white/[0.08] pt-3.5 text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
+            <div className="mt-5 border-t border-[#1e2230] pt-3 text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
               <ShieldCheck size={14} />
-              <span>macOS On-Device Engine Ready.</span>
+              <span>Local detection service ready for inspection.</span>
             </div>
           </Card>
         </div>
@@ -142,69 +135,69 @@ export default function OverviewPage() {
     )
   }
 
-  // Active State: Real Metrics
+  // Active State: Showing real metrics from database
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
+      <div className="hero-glow flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b soft-divider pb-8">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-400 font-mono">
-              Live Workspace Active
+          <div className="mb-3 flex items-center gap-2">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,0.8)]" />
+            <span className="eyebrow text-emerald-300">
+              Everything is in its place
             </span>
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-white font-display">
-            Storage Intelligence & Duplicate Candidates
+          <h2 className="max-w-2xl text-3xl sm:text-4xl font-semibold tracking-[-0.04em] text-white font-display">
+            Make space for what matters.
           </h2>
-          <p className="mt-0.5 text-xs text-slate-400">
-            Real-time duplicate metrics, recoverable storage analysis, and recommended master copies.
+          <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
+            DedupeIQ quietly finds the copies you forgot about, then lets you decide what stays. Your files never leave this machine.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <Link to="/scan">
-            <Button size="md" className="bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-glowBlue rounded-xl">
+            <Button size="md" className="bg-brand-500 hover:bg-brand-400 text-[#241312] font-bold shadow-glow">
               <FolderOpen size={14} />
-              <span>Scan New Folder</span>
+              <span>Find hidden copies</span>
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* 4-Stat Metric Grid */}
+      {/* 4-Metric Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           label="Files Analyzed"
           value={dashboard.filesScanned.toLocaleString()}
           subtext={`${formatBytes(dashboard.scannedSize)} total storage`}
           icon={FileText}
-          color="from-blue-500 to-indigo-600"
+          tone="blue"
         />
         <MetricCard
           label="Identified Duplicates"
           value={dashboard.duplicateFiles.toLocaleString()}
           subtext={`${dashboard.filesScanned > 0 ? Math.round((dashboard.duplicateFiles / dashboard.filesScanned) * 100) : 0}% of scanned collection`}
           icon={CopyIcon}
-          color="from-purple-500 to-pink-600"
+          tone="purple"
         />
         <MetricCard
           label="Duplicate Clusters"
           value={dashboard.duplicateGroups.toLocaleString()}
           subtext="Ready for review"
           icon={BarChart3}
-          color="from-amber-500 to-orange-600"
+          tone="amber"
         />
         <MetricCard
           label="Recoverable Storage"
           value={formatBytes(dashboard.recoverable)}
           subtext={`${formatBytes(dashboard.recovered)} already recovered`}
           icon={HardDrive}
-          color="from-emerald-500 to-teal-600"
+          tone="green"
         />
       </div>
 
-      {/* Interactive Storage Simulator */}
+      {/* Interactive Storage ROI Simulator */}
       <RecoverySimulator data={dashboard} />
 
       {/* Storage Breakdown & Recent Clusters */}
@@ -214,7 +207,7 @@ export default function OverviewPage() {
       </div>
 
       {/* Pipeline Status */}
-      <PipelineArchitectureCard onRefresh={refetch} />
+      <PipelineCard onRefresh={refetch} />
     </div>
   )
 }
@@ -224,25 +217,36 @@ function MetricCard({
   value,
   subtext,
   icon: Icon,
-  color
+  tone
 }: {
   label: string
   value: string
   subtext: string
   icon: any
-  color: string
+  tone: 'blue' | 'purple' | 'amber' | 'green'
 }) {
   return (
-    <Card className="p-5 relative overflow-hidden group">
-      <div className="flex items-start justify-between">
+    <Card className="group relative overflow-hidden p-5 bg-[#151719] border-[#2a2e33] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#454b52] hover:shadow-glow">
+      <div className="absolute right-0 top-0 h-20 w-20 rounded-full bg-brand-500/5 blur-2xl transition-all group-hover:bg-brand-500/10" />
+      <div className="relative flex items-start justify-between">
         <div>
           <p className="text-xs font-medium text-slate-400">{label}</p>
-          <p className="mt-1.5 text-2xl font-bold font-mono tracking-tight text-white">{value}</p>
+          <p className="mt-2 text-3xl font-semibold font-display tracking-[-0.04em] text-white">{value}</p>
           <p className="mt-1 text-[11px] text-slate-400">{subtext}</p>
         </div>
 
-        <div className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${color} text-white shadow-lg group-hover:scale-105 transition-transform`}>
-          <Icon size={18} />
+        <div
+          className={`grid h-8 w-8 place-items-center rounded-lg border ${
+            tone === 'blue'
+              ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+              : tone === 'purple'
+              ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+              : tone === 'amber'
+              ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+          }`}
+        >
+          <Icon size={16} />
         </div>
       </div>
     </Card>
@@ -253,10 +257,10 @@ function StorageTaxonomy({ data }: { data: DashboardData }) {
   const breakdown = data.storageBreakdown || []
 
   return (
-    <Card className="p-6">
+    <Card className="p-5 bg-[#11141d] border-[#1e2230]">
       <SectionTitle
-        eyebrow="Storage Distribution"
-        title="Workspace Category Breakdown"
+        eyebrow="Storage Taxonomy"
+        title="Workspace Category Distribution"
       />
 
       <div className="space-y-4">
@@ -265,20 +269,20 @@ function StorageTaxonomy({ data }: { data: DashboardData }) {
           <span className="font-mono font-bold text-white">{formatBytes(data.scannedSize)}</span>
         </div>
 
-        {/* Progress Bar */}
-        <div className="h-3.5 w-full overflow-hidden rounded-full bg-white/[0.06] flex p-0.5">
-          {breakdown.map(item => (
+        {/* Progress Bar Breakdown */}
+        <div className="h-3 w-full overflow-hidden rounded-md bg-[#1a1e29] flex">
+          {breakdown.map((item, idx) => (
             <div
               key={item.name}
               style={{ width: `${item.value}%`, backgroundColor: item.color }}
-              className="h-full first:rounded-l-full last:rounded-r-full transition-all duration-300"
+              className="h-full transition-all duration-300"
               title={`${item.name}: ${item.value}%`}
             />
           ))}
         </div>
 
         {/* Legend */}
-        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/[0.08]">
+        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#1e2230]">
           {breakdown.map(item => (
             <div key={item.name} className="text-xs">
               <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
@@ -298,28 +302,28 @@ function RecentClusters({ groups }: { groups: DuplicateGroup[] }) {
   const topGroups = groups.slice(0, 3)
 
   return (
-    <Card className="p-6">
+    <Card className="p-5 bg-[#11141d] border-[#1e2230]">
       <SectionTitle
         eyebrow="Priority Review"
         title="Recent Duplicate Clusters"
         action={
-          <Link to="/groups" className="text-xs font-semibold text-blue-400 hover:underline flex items-center gap-1">
+          <Link to="/groups" className="text-xs font-semibold text-brand-400 hover:underline flex items-center gap-1">
             View All ({groups.length}) <ChevronRight size={13} />
           </Link>
         }
       />
 
       {topGroups.length > 0 ? (
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           {topGroups.map(group => (
             <Link
               key={group.id}
               to={`/groups/${group.id}`}
-              className="flex items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.03] p-3.5 hover:border-white/[0.18] hover:bg-white/[0.07] transition-all"
+              className="flex items-center justify-between rounded-lg border border-[#1e2230] bg-[#161922] p-3 hover:border-[#2f374e] hover:bg-[#1a1e29] transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/[0.06] text-white">
-                  {group.type === 'Near image' ? <ImageIcon size={16} /> : <FileText size={16} />}
+                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-[#222738] text-slate-300">
+                  {group.type === 'Near image' ? <ImageIcon size={15} /> : <FileText size={15} />}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
@@ -328,7 +332,7 @@ function RecentClusters({ groups }: { groups: DuplicateGroup[] }) {
                       {group.similarity}% Match
                     </Badge>
                   </div>
-                  <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                  <p className="text-[10px] text-slate-400 truncate mt-0.5">
                     {group.files.length} copies · {group.explanation}
                   </p>
                 </div>
@@ -336,37 +340,37 @@ function RecentClusters({ groups }: { groups: DuplicateGroup[] }) {
 
               <div className="text-right pl-3 shrink-0">
                 <p className="text-xs font-mono font-bold text-emerald-400">{formatBytes(group.recoverable)}</p>
-                <p className="text-[9px] text-slate-400">reclaimable</p>
+                <p className="text-[9px] text-slate-400">recoverable</p>
               </div>
             </Link>
           ))}
         </div>
       ) : (
-        <div className="p-8 text-center text-xs text-slate-400 border border-dashed border-white/[0.10] rounded-xl">
-          No duplicate clusters detected in current workspace.
+        <div className="p-6 text-center text-xs text-slate-400 border border-dashed border-[#1e2230] rounded-lg">
+          No duplicate clusters detected.
         </div>
       )}
     </Card>
   )
 }
 
-function PipelineArchitectureCard({ onRefresh }: { onRefresh: () => void }) {
+function PipelineCard({ onRefresh }: { onRefresh: () => void }) {
   const steps = [
-    { name: 'Exact SHA-256 Pass', desc: 'Instant byte-for-byte clone detection', color: 'from-blue-500 to-indigo-600' },
-    { name: 'Perceptual Vision Fingerprints', desc: 'pHash, dHash, & wHash Hamming distance', color: 'from-purple-500 to-pink-600' },
-    { name: 'Deep NLP Text Normalizer', desc: 'Cross-format DOCX ⟷ PDF ⟷ TXT parser', color: 'from-amber-500 to-orange-600' },
-    { name: 'Louvain Graph Communities', desc: 'Master copy star recommendation', color: 'from-emerald-500 to-teal-600' }
+    { name: 'Exact SHA-256 Hashing', desc: 'Instant byte-for-byte matching' },
+    { name: 'Perceptual Visual Fingerprints', desc: 'pHash, dHash, & wHash Hamming distance' },
+    { name: 'Deep NLP Text Normalization', desc: 'Cross-format DOCX ⟷ PDF ⟷ TXT parser' },
+    { name: 'Explainable Louvain Clustering', desc: 'Community grouping with master star' }
   ]
 
   return (
-    <Card className="p-6">
+    <Card className="p-5 bg-[#11141d] border-[#1e2230]">
       <SectionTitle
         eyebrow="Architecture"
         title="4-Stage Multi-Modal Pipeline"
         action={
           <button
             onClick={onRefresh}
-            className="grid h-7 w-7 place-items-center rounded-lg border border-white/[0.12] text-slate-400 hover:text-white"
+            className="grid h-7 w-7 place-items-center rounded border border-[#222634] text-slate-400 hover:text-white"
             title="Refresh status"
           >
             <RefreshCw size={13} />
@@ -376,8 +380,8 @@ function PipelineArchitectureCard({ onRefresh }: { onRefresh: () => void }) {
 
       <div className="grid gap-2.5 sm:grid-cols-2">
         {steps.map((step, idx) => (
-          <div key={step.name} className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
-            <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-gradient-to-br ${step.color} text-white font-mono font-bold text-xs shadow-sm`}>
+          <div key={step.name} className="flex items-center gap-3 rounded-lg border border-[#1e2230] bg-[#161922] p-2.5">
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded bg-brand-500/15 text-[11px] font-mono font-bold text-brand-300">
               {idx + 1}
             </span>
             <div className="min-w-0 flex-1">
