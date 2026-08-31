@@ -343,62 +343,75 @@ export default function ReviewGroupPage() {
             <div className="flex items-center gap-2">
               <Sparkles size={16} className="text-brand-400" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-white font-mono">
-                Why They Match
+                Detection Signals
               </h3>
             </div>
-            <span className="text-[10px] font-mono text-emerald-400 font-bold">{group.similarity}% Algorithmic Overlap</span>
+            <span className="text-[10px] font-mono text-emerald-400 font-bold">{group.similarity}% Similarity Confidence</span>
           </div>
 
           <div className="space-y-3">
             {/* Visual similarity bar */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs">
-                <span className="text-slate-300">Visual similarity (pHash distance)</span>
-                <span className="font-mono font-bold text-emerald-400">99%</span>
+                <span className="text-slate-300">Cluster Matching Score</span>
+                <span className="font-mono font-bold text-emerald-400">{group.similarity}%</span>
               </div>
               <div className="h-2 w-full bg-[#1e2229] rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full" style={{ width: '99%' }} />
+                <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full" style={{ width: `${group.similarity}%` }} />
               </div>
             </div>
 
-            {/* Perceptual hash score */}
+            {/* Quality retention score */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs">
-                <span className="text-slate-300">Perceptual fingerprint structural match</span>
-                <span className="font-mono font-bold text-brand-400">97%</span>
+                <span className="text-slate-300">Master Quality Score</span>
+                <span className="font-mono font-bold text-brand-400">{masterFile.quality || 100}%</span>
               </div>
               <div className="h-2 w-full bg-[#1e2229] rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-brand-500 to-brand-400 rounded-full" style={{ width: '97%' }} />
+                <div className="h-full bg-gradient-to-r from-brand-500 to-brand-400 rounded-full" style={{ width: `${masterFile.quality || 100}%` }} />
               </div>
             </div>
 
-            {/* Checked traits */}
-            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#242830]">
-              <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center">
-                <span className="text-emerald-400 font-bold text-sm">✓</span>
-                <p className="text-[10px] text-slate-300 mt-0.5">Same aspect ratio</p>
-              </div>
-              <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center">
-                <span className="text-emerald-400 font-bold text-sm">✓</span>
-                <p className="text-[10px] text-slate-300 mt-0.5">Resolution changed</p>
-              </div>
-              <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center">
-                <span className="text-emerald-400 font-bold text-sm">✓</span>
-                <p className="text-[10px] text-slate-300 mt-0.5">Compression detected</p>
-              </div>
+            {/* Dynamic signals / traits */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-[#242830]">
+              {group.signals && group.signals.length > 0 ? (
+                group.signals.map((sig, i) => (
+                  <div key={i} className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center">
+                    <span className="text-emerald-400 font-bold text-xs">✓</span>
+                    <p className="text-[10px] text-slate-300 mt-0.5 truncate">{sig.label}</p>
+                    {sig.value && <p className="text-[9px] text-slate-500 font-mono truncate">{sig.value}</p>}
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center">
+                    <span className="text-emerald-400 font-bold text-xs">✓</span>
+                    <p className="text-[10px] text-slate-300 mt-0.5">Content Similarity</p>
+                  </div>
+                  <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center">
+                    <span className="text-emerald-400 font-bold text-xs">✓</span>
+                    <p className="text-[10px] text-slate-300 mt-0.5">Structure Match</p>
+                  </div>
+                  <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center">
+                    <span className="text-emerald-400 font-bold text-xs">✓</span>
+                    <p className="text-[10px] text-slate-300 mt-0.5">Candidate Copies</p>
+                  </div>
+                </>
+              )}
             </div>
 
-            {/* Likely transformation */}
-            <div className="rounded-xl border border-brand-500/20 bg-brand-500/8 p-3 text-xs flex items-center gap-2">
-              <span className="font-bold text-brand-300 shrink-0">Likely transformation:</span>
-              <span className="text-slate-300 font-mono text-[11px] truncate">
-                Original → Resized → WhatsApp compressed copy
-              </span>
+            {/* Real explanation */}
+            <div className="rounded-xl border border-brand-500/20 bg-brand-500/8 p-3 text-xs flex items-start gap-2">
+              <Info size={14} className="text-brand-400 shrink-0 mt-0.5" />
+              <div className="text-[11px] text-slate-300 leading-relaxed">
+                <strong className="text-brand-300">Explanation: </strong>
+                {group.explanation}
+              </div>
             </div>
           </div>
         </Card>
 
-        {/* ── DUPLICATE FAMILY LINEAGE WIDGET ── */}
+        {/* ── DUPLICATE FAMILY LINEAGE WIDGET (DYNAMIC FILES) ── */}
         <Card className="p-6 bg-[#12141a] border-[#242830] space-y-4">
           <div className="flex items-center justify-between border-b border-[#242830] pb-3">
             <div className="flex items-center gap-2">
@@ -407,18 +420,18 @@ export default function ReviewGroupPage() {
                 Duplicate Family Tree
               </h3>
             </div>
-            <span className="text-[10px] font-mono text-slate-400">File Lineage Hierarchy</span>
+            <span className="text-[10px] font-mono text-slate-400">{group.files.length} Grouped Files</span>
           </div>
 
           {/* Tree Diagram */}
           <div className="flex flex-col items-center justify-center p-3 space-y-2">
             {/* Top Root Node (Master) */}
             <div className="rounded-xl border-2 border-emerald-500/40 bg-emerald-950/30 px-4 py-2 text-center shadow-sm">
-              <p className="text-xs font-bold text-white font-mono truncate max-w-[200px]">
+              <p className="text-xs font-bold text-white font-mono truncate max-w-[220px]">
                 {masterFile.name}
               </p>
               <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400">
-                ★ ORIGINAL MASTER
+                ★ RECOMMENDED MASTER
               </span>
             </div>
 
@@ -426,27 +439,25 @@ export default function ReviewGroupPage() {
             <div className="h-4 w-0.5 bg-slate-600" />
 
             {/* Horizontal Branch Bar */}
-            <div className="w-4/5 h-0.5 bg-slate-600 relative">
-              <div className="absolute left-0 top-0 h-2 w-0.5 bg-slate-600" />
-              <div className="absolute left-1/2 -translate-x-1/2 top-0 h-2 w-0.5 bg-slate-600" />
-              <div className="absolute right-0 top-0 h-2 w-0.5 bg-slate-600" />
-            </div>
+            {nonMasterFiles.length > 0 && (
+              <>
+                <div className="w-4/5 h-0.5 bg-slate-600 relative">
+                  <div className="absolute left-0 top-0 h-2 w-0.5 bg-slate-600" />
+                  <div className="absolute left-1/2 -translate-x-1/2 top-0 h-2 w-0.5 bg-slate-600" />
+                  <div className="absolute right-0 top-0 h-2 w-0.5 bg-slate-600" />
+                </div>
 
-            {/* Child Derivative Nodes */}
-            <div className="grid grid-cols-3 gap-2 w-full pt-1">
-              <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2 text-center">
-                <p className="text-[10px] font-bold text-slate-300">Resized</p>
-                <span className="text-[9px] font-mono font-bold text-emerald-400">98% match</span>
-              </div>
-              <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2 text-center">
-                <p className="text-[10px] font-bold text-slate-300">Compressed</p>
-                <span className="text-[9px] font-mono font-bold text-brand-400">97% match</span>
-              </div>
-              <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2 text-center">
-                <p className="text-[10px] font-bold text-slate-300">Cropped</p>
-                <span className="text-[9px] font-mono font-bold text-amber-400">91% match</span>
-              </div>
-            </div>
+                {/* Child Derivative Nodes from real non-master files */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 w-full pt-1">
+                  {nonMasterFiles.slice(0, 3).map((f, idx) => (
+                    <div key={f.id} className="rounded-lg border border-[#242830] bg-[#16181f] p-2 text-center">
+                      <p className="text-[10px] font-bold text-slate-300 truncate">{f.name}</p>
+                      <span className="text-[9px] font-mono text-slate-400">{formatBytes(f.size)}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </Card>
       </div>

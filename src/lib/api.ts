@@ -13,13 +13,6 @@ const emptyDashboard: DashboardData = {
   recoveryByType: []
 }
 
-const DEMO_EMAILS = ['alex.morgan@workspace.io', 'jordan.lee@storage.dev']
-
-function isDemoAccount(email?: string | null): boolean {
-  if (!email) return false
-  return DEMO_EMAILS.includes(email.toLowerCase().trim())
-}
-
 function getStorageKey(email: string, key: string): string {
   const safeEmail = email.toLowerCase().replace(/[^a-z0-9]/g, '_')
   return `dedupeiq_user_${safeEmail}_${key}`
@@ -52,244 +45,60 @@ async function get<T>(path: string): Promise<T> {
 const clientScans: Record<string, { phase: string; processed: number; total: number; current_file?: string; startTime: number }> = {}
 
 // ---------------------------------------------------------------------------
-// PER-USER DASHBOARD
+// DASHBOARD
 // ---------------------------------------------------------------------------
 export async function fetchDashboard(emailParam?: string | null): Promise<DashboardData> {
   const email = emailParam || getCurrentUserEmail()
 
-  if (isDemoAccount(email)) {
-    try {
-      return await get<DashboardData>('/api/dashboard')
-    } catch {
-      // Fallback realistic demo dataset for serverless / Vercel
-      return {
-        isDemo: true,
-        filesScanned: 24891,
-        scannedSize: 86.4 * 1024 * 1024 * 1024,
-        duplicateFiles: 1284,
-        duplicateGroups: 418,
-        recoverable: 18.7 * 1024 * 1024 * 1024,
-        recovered: 3.4 * 1024 * 1024 * 1024,
-        storageBreakdown: [
-          { name: 'Photos & RAW', value: 48, color: '#818cf8', bytes: 41.5 * 1024 * 1024 * 1024 },
-          { name: 'Documents & PDFs', value: 26, color: '#38bdf8', bytes: 22.4 * 1024 * 1024 * 1024 },
-          { name: 'Media & Video', value: 16, color: '#c084fc', bytes: 13.8 * 1024 * 1024 * 1024 },
-          { name: 'Archives & Other', value: 10, color: '#94a3b8', bytes: 8.7 * 1024 * 1024 * 1024 }
-        ],
-        duplicateBreakdown: [
-          { name: 'Exact SHA-256', value: 34, color: '#6366f1' },
-          { name: 'Perceptual Images', value: 42, color: '#c084fc' },
-          { name: 'Document Revisions', value: 24, color: '#38bdf8' }
-        ],
-        recoveryByType: [
-          { name: 'Images', value: 52, bytes: 9.7 * 1024 * 1024 * 1024, color: '#818cf8' },
-          { name: 'Documents', value: 33, bytes: 6.2 * 1024 * 1024 * 1024, color: '#38bdf8' },
-          { name: 'Other', value: 15, bytes: 2.8 * 1024 * 1024 * 1024, color: '#94a3b8' }
-        ]
-      }
-    }
-  }
-
-  if (!email) return emptyDashboard
-
+  // 1. Try real live backend
   try {
-    const saved = localStorage.getItem(getStorageKey(email, 'dashboard'))
-    if (saved) {
-      return JSON.parse(saved)
+    const data = await get<DashboardData>('/api/dashboard')
+    if (data && (data.filesScanned > 0 || data.storageBreakdown?.length > 0)) {
+      return data
     }
   } catch {
-    // fallback
+    // Backend unreachable or returned empty
+  }
+
+  // 2. Read from user's active session if scanned locally
+  if (email) {
+    try {
+      const saved = localStorage.getItem(getStorageKey(email, 'dashboard'))
+      if (saved) {
+        return JSON.parse(saved)
+      }
+    } catch {
+      // fallback
+    }
   }
 
   return emptyDashboard
 }
 
 // ---------------------------------------------------------------------------
-// PER-USER DUPLICATE GROUPS
+// DUPLICATE GROUPS
 // ---------------------------------------------------------------------------
 export async function fetchGroups(emailParam?: string | null): Promise<DuplicateGroup[]> {
   const email = emailParam || getCurrentUserEmail()
 
-  if (isDemoAccount(email)) {
-    try {
-      const data = await get<DuplicateGroup[]>('/api/duplicate-groups')
-      if (data && data.length > 0) return data
-    } catch {
-      // Fallback realistic demo duplicate groups for serverless
-    }
-
-    return [
-      {
-        id: 'group_vacation_photos',
-        title: 'Vacation Photos & WhatsApp Derivatives',
-        type: 'Near image',
-        category: 'image',
-        similarity: 98,
-        confidence: 'Almost certain',
-        recoverable: 133169152, // 127 MB
-        explanation: 'Perceptual pHash match across original camera RAW, downscaled exports, and WhatsApp compressed copies.',
-        recommendationReason: 'Highest resolution (4032 × 3024) with uncompressed color depth.',
-        signals: [
-          { label: 'Perceptual Hash Distance', value: '99% match' },
-          { label: 'Aspect Ratio Match', value: '4:3 standard' },
-          { label: 'Resolution Shift', value: 'Downscaled 4032px -> 1280px' }
-        ],
-        files: [
-          {
-            id: 'file_img_8421_orig',
-            name: 'IMG_8421.JPG',
-            path: 'Pictures/Vacation2026/IMG_8421.JPG',
-            size: 6081740,
-            type: 'image',
-            extension: 'jpg',
-            dimensions: '4032 × 3024',
-            modifiedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-            quality: 100,
-            isRecommended: true
-          },
-          {
-            id: 'file_img_8421_wa',
-            name: 'WhatsApp_IMG_8421.jpg',
-            path: 'Downloads/WhatsApp/WhatsApp_IMG_8421.jpg',
-            size: 441344,
-            type: 'image',
-            extension: 'jpg',
-            dimensions: '1280 × 960',
-            modifiedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-            quality: 65,
-            isRecommended: false
-          },
-          {
-            id: 'file_img_8421_thumb',
-            name: 'IMG_8421_small.jpg',
-            path: 'Pictures/Previews/IMG_8421_small.jpg',
-            size: 215040,
-            type: 'image',
-            extension: 'jpg',
-            dimensions: '800 × 600',
-            modifiedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-            quality: 45,
-            isRecommended: false
-          },
-          {
-            id: 'file_img_8421_copy',
-            name: 'IMG_8421 (1).JPG',
-            path: 'Desktop/Photos/IMG_8421 (1).JPG',
-            size: 6081740,
-            type: 'image',
-            extension: 'jpg',
-            dimensions: '4032 × 3024',
-            modifiedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-            quality: 100,
-            isRecommended: false
-          }
-        ]
-      },
-      {
-        id: 'group_financial_report',
-        title: 'Annual Financial Report Drafts',
-        type: 'Near document',
-        category: 'document',
-        similarity: 94,
-        confidence: 'Highly similar',
-        recoverable: 38797312, // 37 MB
-        explanation: 'Document text overlap and structure match between final PDF export and revision docx files.',
-        recommendationReason: 'Most recent revision with complete financial appendix.',
-        signals: [
-          { label: 'Text n-gram overlap', value: '94% similarity' },
-          { label: 'Page Layout', value: 'Consistent structure' }
-        ],
-        files: [
-          {
-            id: 'file_report_final_pdf',
-            name: 'Financial_Report_Final_v2.pdf',
-            path: 'Documents/Finance/Financial_Report_Final_v2.pdf',
-            size: 4194304,
-            type: 'document',
-            extension: 'pdf',
-            pages: 28,
-            modifiedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-            quality: 98,
-            isRecommended: true
-          },
-          {
-            id: 'file_report_draft_docx',
-            name: 'Financial_Report_Draft.docx',
-            path: 'Documents/Drafts/Financial_Report_Draft.docx',
-            size: 3879731,
-            type: 'document',
-            extension: 'docx',
-            pages: 26,
-            modifiedAt: new Date(Date.now() - 86400000 * 4).toISOString(),
-            quality: 85,
-            isRecommended: false
-          },
-          {
-            id: 'file_report_copy_docx',
-            name: 'Financial_Report_Copy.docx',
-            path: 'Downloads/Financial_Report_Copy.docx',
-            size: 3879731,
-            type: 'document',
-            extension: 'docx',
-            pages: 26,
-            modifiedAt: new Date(Date.now() - 86400000 * 4).toISOString(),
-            quality: 85,
-            isRecommended: false
-          }
-        ]
-      },
-      {
-        id: 'group_project_blueprint',
-        title: 'Architecture Blueprint & Wireframes',
-        type: 'Exact',
-        category: 'exact',
-        similarity: 100,
-        confidence: 'Exact duplicate',
-        recoverable: 18454937,
-        explanation: 'Identical SHA-256 cryptographic byte hash across separate workspace folders.',
-        recommendationReason: 'Original source in active project folder.',
-        signals: [
-          { label: 'SHA-256 Hash', value: 'Identical match' }
-        ],
-        files: [
-          {
-            id: 'file_blueprint_v1',
-            name: 'system_architecture_diagram.png',
-            path: 'Projects/Architecture/system_architecture_diagram.png',
-            size: 18454937,
-            type: 'image',
-            extension: 'png',
-            dimensions: '3840 × 2160',
-            modifiedAt: new Date(Date.now() - 86400000 * 10).toISOString(),
-            quality: 100,
-            isRecommended: true
-          },
-          {
-            id: 'file_blueprint_copy',
-            name: 'system_architecture_diagram_copy.png',
-            path: 'Downloads/system_architecture_diagram_copy.png',
-            size: 18454937,
-            type: 'image',
-            extension: 'png',
-            dimensions: '3840 × 2160',
-            modifiedAt: new Date(Date.now() - 86400000 * 10).toISOString(),
-            quality: 100,
-            isRecommended: false
-          }
-        ]
-      }
-    ]
+  // 1. Try real live backend
+  try {
+    const data = await get<DuplicateGroup[]>('/api/duplicate-groups')
+    if (data && data.length > 0) return data
+  } catch {
+    // Backend unreachable
   }
 
-  if (!email) return []
-
-  try {
-    const saved = localStorage.getItem(getStorageKey(email, 'groups'))
-    if (saved) {
-      return JSON.parse(saved)
+  // 2. Read from user's active session
+  if (email) {
+    try {
+      const saved = localStorage.getItem(getStorageKey(email, 'groups'))
+      if (saved) {
+        return JSON.parse(saved)
+      }
+    } catch {
+      // fallback
     }
-  } catch {
-    // fallback
   }
 
   return []
@@ -301,47 +110,24 @@ export async function fetchGroups(emailParam?: string | null): Promise<Duplicate
 export async function fetchHistory(emailParam?: string | null): Promise<ScanRecord[]> {
   const email = emailParam || getCurrentUserEmail()
 
-  if (isDemoAccount(email)) {
-    try {
-      const data = await get<ScanRecord[]>('/api/history')
-      if (data && data.length > 0) return data
-    } catch {
-      // Fallback demo history
-    }
-
-    return [
-      {
-        id: 'scan_demo_01',
-        name: 'Pictures & Media Library',
-        files: 14820,
-        size: 58.2 * 1024 * 1024 * 1024,
-        groups: 284,
-        recovered: 2.1 * 1024 * 1024 * 1024,
-        status: 'Completed',
-        date: new Date(Date.now() - 3600000 * 2).toISOString()
-      },
-      {
-        id: 'scan_demo_02',
-        name: 'Documents & Workspaces',
-        files: 10071,
-        size: 28.2 * 1024 * 1024 * 1024,
-        groups: 134,
-        recovered: 1.3 * 1024 * 1024 * 1024,
-        status: 'Completed',
-        date: new Date(Date.now() - 86400000).toISOString()
-      }
-    ]
+  // 1. Try real live backend
+  try {
+    const data = await get<ScanRecord[]>('/api/history')
+    if (data && data.length > 0) return data
+  } catch {
+    // Backend unreachable
   }
 
-  if (!email) return []
-
-  try {
-    const saved = localStorage.getItem(getStorageKey(email, 'history'))
-    if (saved) {
-      return JSON.parse(saved)
+  // 2. Read from user's active session
+  if (email) {
+    try {
+      const saved = localStorage.getItem(getStorageKey(email, 'history'))
+      if (saved) {
+        return JSON.parse(saved)
+      }
+    } catch {
+      // fallback
     }
-  } catch {
-    // fallback
   }
 
   return []
@@ -353,30 +139,31 @@ export async function fetchHistory(emailParam?: string | null): Promise<ScanReco
 export async function fetchQuarantine(emailParam?: string | null): Promise<QuarantineItem[]> {
   const email = emailParam || getCurrentUserEmail()
 
-  if (isDemoAccount(email)) {
-    try {
-      return await get<QuarantineItem[]>('/api/quarantine')
-    } catch {
-      return []
-    }
+  // 1. Try real live backend
+  try {
+    const data = await get<QuarantineItem[]>('/api/quarantine')
+    if (data) return data
+  } catch {
+    // Backend unreachable
   }
 
-  if (!email) return []
-
-  try {
-    const saved = localStorage.getItem(getStorageKey(email, 'quarantine'))
-    if (saved) {
-      return JSON.parse(saved)
+  // 2. Read from user's active session
+  if (email) {
+    try {
+      const saved = localStorage.getItem(getStorageKey(email, 'quarantine'))
+      if (saved) {
+        return JSON.parse(saved)
+      }
+    } catch {
+      // fallback
     }
-  } catch {
-    // fallback
   }
 
   return []
 }
 
 // ---------------------------------------------------------------------------
-// SCAN EXECUTION (HYBRID BACKEND + CLIENT-SIDE FALLBACK FOR VERCEL)
+// SCAN EXECUTION
 // ---------------------------------------------------------------------------
 export async function fetchScanProgress(id: string) {
   try {
@@ -385,7 +172,7 @@ export async function fetchScanProgress(id: string) {
     )
     return res
   } catch {
-    // Client-side progress calculation for Vercel
+    // Client-side progress tracking
     const clientScan = clientScans[id]
     if (clientScan) {
       const elapsed = Date.now() - clientScan.startTime
@@ -432,7 +219,7 @@ export async function startScan(payload: { name: string; fileCount: number; tota
 
   let backendResult: { id: string; status: string } = { id: scanId, status: 'running' }
 
-  // 1. Try sending to backend if available
+  // 1. Try sending to real Python backend if available
   try {
     if (payload.files?.length) {
       const body = new FormData()
@@ -455,10 +242,10 @@ export async function startScan(payload: { name: string; fileCount: number; tota
       }
     }
   } catch {
-    // Graceful client fallback
+    // Graceful on-device fallback
   }
 
-  // 2. Client-side on-device intelligence for uploaded files
+  // 2. On-device analysis for uploaded files
   const email = getCurrentUserEmail()
   if (email && payload.files && payload.files.length > 0) {
     try {
@@ -521,41 +308,6 @@ export async function startScan(payload: { name: string; fileCount: number; tota
           })
         }
       })
-
-      // If no duplicate names found in upload, create at least 1 group for demonstration if 2+ files
-      if (detectedGroups.length === 0 && fileList.length >= 2) {
-        const sorted = [...fileList].sort((a, b) => b.size - a.size)
-        const master = sorted[0]
-        const isImg = /\.(jpg|jpeg|png|webp|gif|bmp)$/i.test(master.name)
-        const isDoc = /\.(docx|doc|pdf|txt|md)$/i.test(master.name)
-        const groupRecoverable = sorted.slice(1).reduce((acc, f) => acc + f.size, 0)
-
-        detectedGroups.push({
-          id: `grp_detected_single_${Date.now()}`,
-          title: `Uploaded Collection (${fileList.length} Files)`,
-          type: isImg ? 'Near image' : isDoc ? 'Near document' : 'Exact',
-          category: isImg ? 'image' : isDoc ? 'document' : 'exact',
-          similarity: 96,
-          confidence: 'Highly similar',
-          recoverable: groupRecoverable,
-          explanation: 'Visual & content similarity clusters discovered during scan.',
-          recommendationReason: 'Highest quality master file to retain.',
-          signals: [
-            { label: 'Cluster Similarity', value: '96% confidence' }
-          ],
-          files: sorted.map((f, fIdx): FileRecord => ({
-            id: `file_${fIdx}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-            name: f.name,
-            path: f.webkitRelativePath || f.name,
-            size: f.size,
-            type: isImg ? 'image' : isDoc ? 'document' : 'other',
-            extension: f.name.split('.').pop() || '',
-            modifiedAt: new Date(f.lastModified || Date.now()).toISOString(),
-            quality: fIdx === 0 ? 100 : 75,
-            isRecommended: fIdx === 0
-          }))
-        })
-      }
 
       // Save to user storage
       if (detectedGroups.length > 0) {
