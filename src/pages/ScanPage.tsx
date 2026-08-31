@@ -235,14 +235,14 @@ export default function ScanPage() {
                 </p>
 
                 <Button
-                  size="md"
+                  size="lg"
                   disabled={!selectedFiles?.length || isScanning}
                   onClick={handleStartUploadScan}
-                  className="w-full sm:w-auto bg-brand-600 hover:bg-brand-500 text-white font-semibold px-6 shadow-sm"
+                  className="w-full sm:w-auto bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-bold px-8 py-3.5 text-sm shadow-glow cursor-pointer active:scale-95"
                 >
-                  {isScanning ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} />}
+                  {isScanning ? <RefreshCw size={16} className="animate-spin" /> : <Zap size={16} className="fill-white" />}
                   <span>{isScanning ? 'Scanning in Progress...' : 'Start Deduplication Scan'}</span>
-                  <ArrowRight size={14} />
+                  <ArrowRight size={16} />
                 </Button>
               </div>
             </div>
@@ -376,9 +376,9 @@ export default function ScanPage() {
               </div>
 
               <Link to="/groups">
-                <Button size="sm" className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs">
+                <Button size="lg" className="bg-emerald-400 hover:bg-emerald-300 text-[#091a12] font-black text-sm px-6 py-3 shadow-[0_0_20px_rgba(52,211,153,0.3)] cursor-pointer">
                   <span>Review Duplicate Groups</span>
-                  <ArrowRight size={13} />
+                  <ArrowRight size={16} strokeWidth={2.5} />
                 </Button>
               </Link>
             </div>
