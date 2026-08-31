@@ -76,7 +76,7 @@ export default function OverviewPage() {
               No files scanned yet
             </h2>
             <p className="mt-1 max-w-xl text-xs text-slate-400 leading-relaxed">
-              DedupeIQ compares image pixels, perceptual frequencies, and cross-format document texts to uncover duplicate groups on your device.
+              FileTwin compares image pixels, perceptual frequencies, and cross-format document texts to uncover duplicate groups on your device.
             </p>
           </div>
 

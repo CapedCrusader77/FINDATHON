@@ -273,7 +273,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
           </div>
           <div>
             <span className="font-display font-bold text-xl tracking-tight text-white">
-              Dedupe<span className="text-brand-400">IQ</span>
+              File<span className="text-brand-400">Twin</span>
             </span>
             <span className="ml-2.5 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[9.5px] font-mono text-emerald-300 hidden sm:inline-flex">
               <Lock size={10} className="text-emerald-400" />
@@ -328,7 +328,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-4 py-1.5 text-xs font-bold text-brand-300 font-mono tracking-wide">
               <Sparkles size={14} />
-              <span>How DedupeIQ Works · Interactive Engine Showcase</span>
+              <span>How FileTwin Works · Interactive Engine Showcase</span>
             </div>
             <h1 className="text-3xl sm:text-5xl font-extrabold font-display text-white tracking-tight leading-tight">
               Not just matching filenames. <br />
@@ -337,7 +337,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
               </span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl mx-auto">
-              Traditional tools say <em>"These files have different names, so they’re different."</em> DedupeIQ looks inside image pixels and document paragraphs to determine: <em>"These are all versions of the same file."</em>
+              Traditional tools say <em>"These files have different names, so they’re different."</em> FileTwin looks inside image pixels and document paragraphs to determine: <em>"These are all versions of the same file."</em>
             </p>
           </div>
 
@@ -462,7 +462,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
             {/* Why They Match Signals List */}
             <div className="rounded-2xl border border-[#1f2333] bg-[#0c0e14] p-4.5 space-y-2">
               <p className="text-[11px] font-bold uppercase tracking-wider text-brand-400 font-mono">
-                Why DedupeIQ Matched This Pair:
+                Why FileTwin Matched This Pair:
               </p>
               <div className="grid sm:grid-cols-3 gap-2 text-xs">
                 {currentComparison.whyMatch.map((reason, i) => (
@@ -877,7 +877,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
       {/* ── Footer ── */}
       <footer className="relative z-10 border-t border-[#1d202e] bg-[#090a0f] py-4 px-6 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between max-w-7xl w-full mx-auto">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-white">DedupeIQ</span>
+          <span className="font-bold text-white font-display">FileTwin</span>
           <span>·</span>
           <span>Intelligent File Deduplication Workstation</span>
         </div>

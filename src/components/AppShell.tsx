@@ -122,8 +122,8 @@ export default function AppShell({ children }: AppShellProps) {
             </div>
             {!collapsed && (
               <div className="truncate flex items-center">
-                <span className="font-display font-bold text-[0.92rem] tracking-tight text-white">
-                  Dedupe<span className="text-brand-400">IQ</span>
+                <span className="font-display font-bold text-[0.95rem] tracking-tight text-white">
+                  File<span className="text-brand-400">Twin</span>
                 </span>
                 <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[8.5px] font-mono text-emerald-300">
                   <Lock size={9} className="text-emerald-400" />

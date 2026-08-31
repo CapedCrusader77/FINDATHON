@@ -1,8 +1,8 @@
-# DedupeIQ
+# FileTwin
 
 **Find what looks the same, reads the same, and wastes your storage.**
 
-DedupeIQ is a local-first duplicate file finder for personal storage. It combines deterministic hashing, perceptual image fingerprints, normalized document text, and explainable multi-signal similarity to surface logical duplicate groups before anything is moved or deleted.
+FileTwin is a local-first duplicate file finder for personal storage. It combines deterministic hashing, perceptual image fingerprints, normalized document text, and explainable multi-signal similarity to surface logical duplicate groups before anything is moved or deleted.
 
 > The current build includes a polished React/Vite product shell, demo workspace, browser folder upload path, Flask scan API, exact hashing, image/document candidate scoring, grouping, quarantine workflow, settings, scan history, and backend tests.
 
