@@ -11,7 +11,8 @@ import {
   FileText,
   Image as ImageIcon,
   CheckCircle2,
-  Check
+  Check,
+  Network
 } from 'lucide-react'
 import { fetchGroups, quarantineFile } from '../lib/api'
 import { formatBytes } from '../lib/utils'
@@ -19,6 +20,7 @@ import { DuplicateGroup } from '../types'
 import { Card, SectionTitle, Button, Badge } from '../components/ui'
 import ImageCompareModal from '../components/ImageCompareModal'
 import DocumentDiffViewer from '../components/DocumentDiffViewer'
+import SimilarityGraph from '../components/SimilarityGraph'
 import { useToast } from '../components/Toast'
 
 import { useAuth } from '../context/AuthContext'
@@ -41,6 +43,7 @@ export default function ReviewGroupPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [inspectImageOpen, setInspectImageOpen] = useState(false)
   const [docDiffOpen, setDocDiffOpen] = useState(false)
+  const [graphModalOpen, setGraphModalOpen] = useState(false)
 
   // Preselect non-master copies by default
   useEffect(() => {
@@ -145,6 +148,16 @@ export default function ReviewGroupPage() {
               <span>Document Diff</span>
             </Button>
           )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setGraphModalOpen(true)}
+            className="text-xs"
+          >
+            <Network size={13} />
+            <span>Similarity Graph</span>
+          </Button>
 
           <Button
             variant="danger"
@@ -370,6 +383,9 @@ export default function ReviewGroupPage() {
         </div>
       </div>
 
+      {/* Inline Topological Similarity Graph & Matrix */}
+      <SimilarityGraph group={group} />
+
       {/* Modals */}
       {inspectImageOpen && (
         <ImageCompareModal
@@ -384,6 +400,15 @@ export default function ReviewGroupPage() {
           group={group}
           isOpen={docDiffOpen}
           onClose={() => setDocDiffOpen(false)}
+        />
+      )}
+
+      {graphModalOpen && (
+        <SimilarityGraph
+          group={group}
+          isModal
+          isOpen={graphModalOpen}
+          onClose={() => setGraphModalOpen(false)}
         />
       )}
     </div>
