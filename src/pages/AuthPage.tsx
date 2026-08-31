@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Sparkles,
   ShieldCheck,
   Lock,
   Mail,
@@ -11,253 +10,470 @@ import {
   EyeOff,
   Zap,
   CheckCircle2,
-  Cpu,
+  Sparkles,
+  Compass,
+  RotateCcw,
+  Orbit,
+  Moon,
+  Wind,
   Layers,
-  FileText,
-  Image as ImageIcon,
-  Check,
-  Sliders,
-  Terminal,
-  KeyRound,
-  HardDrive
+  Check
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { Button, Card, Badge } from '../components/ui'
 
-// Interactive Background Canvas: Floating Hash Nodes & Neural File Linkages
-function InteractiveNeuralBackground() {
+/* ========================================================================== */
+/* WEBGL2 KEPLER ORRERY ENGINE (90,000 BODIES ON EXACT KEPLER ORBITS)         */
+/* ========================================================================== */
+const VS_SOURCE = `#version 300 es
+precision highp float;
+
+layout(location = 0) in vec4 aOrb1; // a, e, inc, node
+layout(location = 1) in vec4 aOrb2; // peri, M0, n, seed
+
+uniform float uTime;
+uniform mat4 uViewProj;
+uniform float uDPR;
+uniform vec2 uViewport;
+
+out vec4 vColor;
+out float vAlpha;
+
+void main() {
+  float a    = aOrb1.x;
+  float e    = aOrb1.y;
+  float inc  = aOrb1.z;
+  float node = aOrb1.w;
+
+  float peri = aOrb2.x;
+  float M0   = aOrb2.y;
+  float n    = aOrb2.z;
+  float seed = aOrb2.w;
+
+  // Primary star pinned to origin
+  if (seed < 0.0) {
+    gl_Position = uViewProj * vec4(0.0, 0.0, 0.0, 1.0);
+    gl_PointSize = uDPR * 26.0 * (26.0 / max(2.0, gl_Position.w));
+    vColor = vec4(1.0, 0.98, 0.94, 1.0);
+    vAlpha = 1.0;
+    return;
+  }
+
+  // 1. Mean anomaly: M = M0 + n * t (Kepler's Third Law: n = 0.42 / a^1.5)
+  float M = M0 + n * uTime;
+  M = mod(M, 6.28318530718);
+
+  // 2. Solve Kepler's Equation with initial guess E0 = M + e*sin(M) and 4 Newton steps
+  float E = M + e * sin(M);
+  for (int i = 0; i < 4; i++) {
+    float f = E - e * sin(E) - M;
+    float fPrime = max(0.15, 1.0 - e * cos(E));
+    E -= f / fPrime;
+  }
+
+  // 3. Orbital plane coordinates
+  float xOrb = a * (cos(E) - e);
+  float yOrb = a * sqrt(max(0.001, 1.0 - e * e)) * sin(E);
+
+  // 4. Exact Rotation Order: Argument of periapsis (in plane) -> Inclination (x-axis) -> Node (z-axis)
+  float cosP = cos(peri);
+  float sinP = sin(peri);
+  float x1 = xOrb * cosP - yOrb * sinP;
+  float y1 = xOrb * sinP + yOrb * cosP;
+  float z1 = 0.0;
+
+  float cosI = cos(inc);
+  float sinI = sin(inc);
+  float x2 = x1;
+  float y2 = y1 * cosI;
+  float z2 = y1 * sinI;
+
+  float cosN = cos(node);
+  float sinN = sin(node);
+  float x3 = x2 * cosN - y2 * sinN;
+  float y3 = x2 * sinN + y2 * cosN;
+  float z3 = z2;
+
+  vec4 worldPos = vec4(x3, y3, z3, 1.0);
+  vec4 clipPos = uViewProj * worldPos;
+  gl_Position = clipPos;
+
+  // Point size and styling
+  float big = (fract(seed * 71.3) < 0.015) ? 1.0 : 0.0;
+  float ptSize = (uDPR * 0.62) * (1.0 + big * 3.4) * (26.0 / max(2.0, clipPos.w));
+  gl_PointSize = max(1.0, min(ptSize, 32.0));
+
+  // Near/Far cue: fade the far half very slightly
+  float depthFade = 0.62 + 0.38 * smoothstep(-1.6, 1.6, -worldPos.z);
+  float baseAlpha = (0.20 + 0.55 * fract(seed * 13.7)) * (1.0 + big * 2.2) * depthFade;
+
+  // Cold blue-white dust shading to warm amber for big bodies
+  vec3 dustColor = mix(vec3(0.65, 0.78, 1.0), vec3(1.0, 0.82, 0.55), fract(seed * 3.1));
+  if (big > 0.5) {
+    dustColor = vec3(1.0, 0.81, 0.48); // Amber warm highlight
+  }
+
+  vColor = vec4(dustColor, 1.0);
+  vAlpha = min(1.0, baseAlpha);
+}
+`
+
+const FS_SOURCE = `#version 300 es
+precision highp float;
+
+in vec4 vColor;
+in float vAlpha;
+out vec4 fragColor;
+
+void main() {
+  float d = length(gl_PointCoord - vec2(0.5)) * 2.0;
+  if (d > 1.0) discard;
+
+  // Tight core plus wide halo
+  float intensity = exp(-d * 6.5) + exp(-d * 1.7) * 0.30;
+  fragColor = vec4(vColor.rgb, vAlpha * intensity);
+}
+`
+
+function WebGLOrrery({ speedMultiplier = 1.0 }: { speedMultiplier?: number }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const gl = canvas.getContext('webgl2', {
+      alpha: true,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      preserveDrawingBuffer: false
+    })
+    if (!gl) return
 
-    let animationFrameId: number
-    let width = (canvas.width = window.innerWidth)
-    let height = (canvas.height = window.innerHeight)
-
-    const handleResize = () => {
-      if (!canvas) return
-      width = canvas.width = window.innerWidth
-      height = canvas.height = window.innerHeight
+    // Compile Shaders
+    const createShader = (type: number, src: string) => {
+      const s = gl.createShader(type)!
+      gl.shaderSource(s, src)
+      gl.compileShader(s)
+      return s
     }
-    window.addEventListener('resize', handleResize)
+    const vs = createShader(gl.VERTEX_SHADER, VS_SOURCE)
+    const fs = createShader(gl.FRAGMENT_SHADER, FS_SOURCE)
+    const prog = gl.createProgram()!
+    gl.attachShader(prog, vs)
+    gl.attachShader(prog, fs)
+    gl.linkProgram(prog)
+    gl.useProgram(prog)
 
-    // Node particles
-    const nodeCount = Math.min(Math.floor((width * height) / 18000), 55)
-    const nodes: Array<{
-      x: number
-      y: number
-      vx: number
-      vy: number
-      radius: number
-      label: string
-      color: string
-    }> = []
+    const uTimeLoc = gl.getUniformLocation(prog, 'uTime')
+    const uViewProjLoc = gl.getUniformLocation(prog, 'uViewProj')
+    const uDPRLoc = gl.getUniformLocation(prog, 'uDPR')
+    const uViewportLoc = gl.getUniformLocation(prog, 'uViewport')
 
-    const hashLabels = ['sha256', 'pHash', 'dHash', '100%', 'dup', 'master', '0x7F', 'MD5', 'vector', 'louvain', 'diff']
-    const colors = ['#6366f1', '#818cf8', '#a855f7', '#10b981', '#06b6d4', '#4f46e5']
+    // Determine particle count based on screen width
+    const isMobile = window.innerWidth < 640
+    const isTablet = window.innerWidth < 1024
+    const N = isMobile ? 22000 : isTablet ? 45000 : 90000
 
-    for (let i = 0; i < nodeCount; i++) {
-      nodes.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.45,
-        vy: (Math.random() - 0.5) * 0.45,
-        radius: Math.random() * 2 + 1.5,
-        label: hashLabels[Math.floor(Math.random() * hashLabels.length)],
-        color: colors[Math.floor(Math.random() * colors.length)]
-      })
+    // Generate 5 distinct Keplerian bands with gaps
+    const bands = [
+      { weight: 0.16, aMin: 0.9, aMax: 1.35, maxE: 0.05, maxI: 0.030 },
+      { weight: 0.24, aMin: 1.7, aMax: 2.35, maxE: 0.09, maxI: 0.055 },
+      { weight: 0.30, aMin: 2.9, aMax: 3.9, maxE: 0.14, maxI: 0.090 },
+      { weight: 0.14, aMin: 4.6, aMax: 5.4, maxE: 0.10, maxI: 0.320 }, // Inclined band
+      { weight: 0.16, aMin: 6.3, aMax: 8.6, maxE: 0.26, maxI: 0.240 }
+    ]
+
+    const orb1Data = new Float32Array(N * 4)
+    const orb2Data = new Float32Array(N * 4)
+
+    // Body 0 is the primary star (pinned at origin)
+    orb1Data[0] = 0.0; orb1Data[1] = 0.0; orb1Data[2] = 0.0; orb1Data[3] = 0.0
+    orb2Data[0] = 0.0; orb2Data[1] = 0.0; orb2Data[2] = 0.0; orb2Data[3] = -1.0 // Seed < 0 signals primary
+
+    let offset = 1
+    for (let b = 0; b < bands.length; b++) {
+      const band = bands[b]
+      const count = Math.floor((N - 1) * band.weight)
+      for (let i = 0; i < count && offset < N; i++) {
+        const u1 = Math.random()
+        const u2 = Math.random()
+        const u3 = Math.random()
+        const u4 = Math.random()
+
+        const a = band.aMin + u3 * (band.aMax - band.aMin)
+        // Rule 5: Sum of two uniforms for e and inc to prevent flat bowl
+        const e = Math.abs(u1 + u2 - 1.0) * band.maxE
+        const inc = (u1 + u2 - 1.0) * band.maxI
+        const node = u4 * Math.PI * 2.0
+
+        const peri = Math.random() * Math.PI * 2.0
+        const M0 = Math.random() * Math.PI * 2.0
+        // Rule 1: Kepler's Third Law: n = 0.42 / a^1.5
+        const n = 0.42 / Math.pow(a, 1.5)
+        const seed = Math.random() * 1000.0
+
+        const idx = offset * 4
+        orb1Data[idx] = a
+        orb1Data[idx + 1] = e
+        orb1Data[idx + 2] = inc
+        orb1Data[idx + 3] = node
+
+        orb2Data[idx] = peri
+        orb2Data[idx + 1] = M0
+        orb2Data[idx + 2] = n
+        orb2Data[idx + 3] = seed
+
+        offset++
+      }
     }
 
-    let mouseX = -1000
-    let mouseY = -1000
+    const vao = gl.createVertexArray()
+    gl.bindVertexArray(vao)
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect()
-      mouseX = e.clientX - rect.left
-      mouseY = e.clientY - rect.top
+    const vbo1 = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo1)
+    gl.bufferData(gl.ARRAY_BUFFER, orb1Data, gl.STATIC_DRAW)
+    gl.enableVertexAttribArray(0)
+    gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 0, 0)
+
+    const vbo2 = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo2)
+    gl.bufferData(gl.ARRAY_BUFFER, orb2Data, gl.STATIC_DRAW)
+    gl.enableVertexAttribArray(1)
+    gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 0, 0)
+
+    // Blend: Additive blending (SRC_ALPHA, ONE), no depth test
+    gl.enable(gl.BLEND)
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE)
+    gl.disable(gl.DEPTH_TEST)
+
+    // Camera, rotation and drag physics with inertia
+    let yaw = 0.45
+    let pitch = 0.95
+    let yawVel = 0.002
+    let pitchVel = 0.0
+    let isDragging = false
+    let lastX = 0
+    let lastY = 0
+
+    const onPointerDown = (e: PointerEvent) => {
+      isDragging = true
+      lastX = e.clientX
+      lastY = e.clientY
     }
-    window.addEventListener('mousemove', handleMouseMove)
+    const onPointerMove = (e: PointerEvent) => {
+      if (!isDragging) return
+      const dx = e.clientX - lastX
+      const dy = e.clientY - lastY
+      lastX = e.clientX
+      lastY = e.clientY
 
-    const render = () => {
-      ctx.clearRect(0, 0, width, height)
+      yawVel = dx * 0.003
+      pitchVel = dy * 0.003
+      yaw += yawVel
+      pitch = Math.max(0.16, Math.min(Math.PI - 0.16, pitch + pitchVel))
+    }
+    const onPointerUp = () => {
+      isDragging = false
+    }
 
-      // Connect nodes with proximity lines
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[i].x - nodes[j].x
-          const dy = nodes[i].y - nodes[j].y
-          const dist = Math.sqrt(dx * dx + dy * dy)
+    window.addEventListener('pointerdown', onPointerDown)
+    window.addEventListener('pointermove', onPointerMove)
+    window.addEventListener('pointerup', onPointerUp)
 
-          if (dist < 130) {
-            ctx.beginPath()
-            ctx.moveTo(nodes[i].x, nodes[i].y)
-            ctx.lineTo(nodes[j].x, nodes[j].y)
-            const alpha = (1 - dist / 130) * 0.15
-            ctx.strokeStyle = `rgba(99, 102, 241, ${alpha})`
-            ctx.lineWidth = 0.8
-            ctx.stroke()
+    let simTime = 0.0
+    let lastTimestamp = performance.now()
+    let animId: number
+
+    const render = (now: number) => {
+      const dt = Math.min(0.05, (now - lastTimestamp) / 1000.0)
+      lastTimestamp = now
+
+      // Advance clock with speed multiplier
+      simTime += dt * speedMultiplier
+
+      // Physics inertia decay: pow(0.0016, dt)
+      if (!isDragging) {
+        const decay = Math.pow(0.0016, dt)
+        yawVel = yawVel * (1.0 - (1.0 - decay) * 0.4) + 0.0003
+        pitchVel *= decay
+        yaw += yawVel
+        // Gentle ease back to default pitch
+        pitch = Math.max(0.16, Math.min(Math.PI - 0.16, pitch + pitchVel + (0.95 - pitch) * 0.02))
+      }
+
+      // Resize with clamped DPR
+      const w = window.innerWidth
+      const h = window.innerHeight
+      const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1.5, 2.0, Math.sqrt(2600000 / (w * h))))
+      const targetW = Math.floor(w * dpr)
+      const targetH = Math.floor(h * dpr)
+
+      if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW
+        canvas.height = targetH
+        gl.viewport(0, 0, targetW, targetH)
+      }
+
+      // Matrix calculations
+      const aspect = w / h
+      const fov = 45.0 * (Math.PI / 180.0)
+      const near = 0.1
+      const far = 100.0
+      const f = 1.0 / Math.tan(fov / 2.0)
+
+      // Perspective Projection
+      const proj = new Float32Array([
+        f / aspect, 0, 0, 0,
+        0, f, 0, 0,
+        0, 0, (far + near) / (near - far), -1,
+        0, 0, (2.0 * far * near) / (near - far), 0
+      ])
+
+      // View Matrix (spherical orbit camera at radius = 16.5)
+      const dist = 16.5
+      const cx = dist * Math.sin(pitch) * Math.sin(yaw)
+      const cy = dist * Math.cos(pitch)
+      const cz = dist * Math.sin(pitch) * Math.cos(yaw)
+
+      // LookAt: camera to (0,0,0)
+      const zAxis = [cx / dist, cy / dist, cz / dist]
+      const up = [0, 1, 0]
+      // Cross up x zAxis
+      let rx = up[1] * zAxis[2] - up[2] * zAxis[1]
+      let ry = up[2] * zAxis[0] - up[0] * zAxis[2]
+      let rz = up[0] * zAxis[1] - up[1] * zAxis[0]
+      const rLen = Math.sqrt(rx * rx + ry * ry + rz * rz)
+      rx /= rLen; ry /= rLen; rz /= rLen
+
+      // Cross zAxis x right
+      const ux = zAxis[1] * rz - zAxis[2] * ry
+      const uy = zAxis[2] * rx - zAxis[0] * rz
+      const uz = zAxis[0] * ry - zAxis[1] * rx
+
+      const view = [
+        rx, ux, zAxis[0], 0,
+        ry, uy, zAxis[1], 0,
+        rz, uz, zAxis[2], 0,
+        -(rx * cx + ry * cy + rz * cz),
+        -(ux * cx + uy * cy + uz * cz),
+        -(zAxis[0] * cx + zAxis[1] * cy + zAxis[2] * cz),
+        1
+      ]
+
+      // Multiply Proj x View
+      const vp = new Float32Array(16)
+      for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 4; j++) {
+          let sum = 0
+          for (let k = 0; k < 4; k++) {
+            sum += proj[k * 4 + i] * view[j * 4 + k]
           }
-        }
-
-        // Connect to mouse cursor
-        const mdx = nodes[i].x - mouseX
-        const mdy = nodes[i].y - mouseY
-        const mDist = Math.sqrt(mdx * mdx + mdy * mdy)
-        if (mDist < 160) {
-          ctx.beginPath()
-          ctx.moveTo(nodes[i].x, nodes[i].y)
-          ctx.lineTo(mouseX, mouseY)
-          const mAlpha = (1 - mDist / 160) * 0.35
-          ctx.strokeStyle = `rgba(129, 140, 248, ${mAlpha})`
-          ctx.lineWidth = 1
-          ctx.stroke()
-        }
-
-        // Draw and update particle
-        const node = nodes[i]
-        node.x += node.vx
-        node.y += node.vy
-
-        if (node.x < 0 || node.x > width) node.vx *= -1
-        if (node.y < 0 || node.y > height) node.vy *= -1
-
-        ctx.beginPath()
-        ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2)
-        ctx.fillStyle = node.color
-        ctx.shadowColor = node.color
-        ctx.shadowBlur = 8
-        ctx.fill()
-        ctx.shadowBlur = 0
-
-        // Subtle labels on selected nodes
-        if (i % 6 === 0) {
-          ctx.font = '9px "JetBrains Mono", monospace'
-          ctx.fillStyle = 'rgba(148, 163, 184, 0.35)'
-          ctx.fillText(node.label, node.x + 6, node.y + 3)
+          vp[j * 4 + i] = sum
         }
       }
 
-      animationFrameId = requestAnimationFrame(render)
+      gl.clearColor(0.0, 0.0, 0.0, 0.0)
+      gl.clear(gl.COLOR_BUFFER_BIT)
+
+      gl.useProgram(prog)
+      gl.uniform1f(uTimeLoc, simTime)
+      gl.uniform1f(uDPRLoc, dpr)
+      gl.uniform2f(uViewportLoc, w, h)
+      gl.uniformMatrix4fv(uViewProjLoc, false, vp)
+
+      gl.bindVertexArray(vao)
+      gl.drawArrays(gl.POINTS, 0, N)
+
+      animId = requestAnimationFrame(render)
     }
 
-    render()
+    animId = requestAnimationFrame(render)
 
     return () => {
-      window.removeEventListener('resize', handleResize)
-      window.removeEventListener('mousemove', handleMouseMove)
-      cancelAnimationFrame(animationFrameId)
+      window.removeEventListener('pointerdown', onPointerDown)
+      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener('pointerup', onPointerUp)
+      cancelAnimationFrame(animId)
     }
-  }, [])
+  }, [speedMultiplier])
 
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none absolute inset-0 z-0 opacity-60"
+      className="fixed inset-0 z-0 h-full w-full cursor-grab active:cursor-grabbing"
+      style={{ touchAction: 'none' }}
     />
   )
 }
 
-// Quick interactive comparison mini-widget for interactive demo feel
-function InteractiveDedupeDemo() {
-  const [slider, setSlider] = useState(88)
-  const [activeTab, setActiveTab] = useState<'image' | 'doc'>('image')
+/* ========================================================================== */
+/* REAL ASTRONOMICAL EPHEMERIS CALCULATOR                                     */
+/* ========================================================================== */
+function useEphemeris() {
+  const [now, setNow] = useState(Date.now())
+  const [seeing, setSeeing] = useState(1.4)
 
-  return (
-    <div className="rounded-2xl border border-[#222634] bg-[#11141d]/85 p-5 shadow-2xl backdrop-blur-xl transition-all">
-      <div className="flex items-center justify-between border-b border-[#1e2230] pb-3 mb-4">
-        <div className="flex items-center gap-2">
-          <div className="grid h-6 w-6 place-items-center rounded-md bg-brand-500/15 text-brand-400 border border-brand-500/30">
-            <Cpu size={13} />
-          </div>
-          <span className="text-xs font-bold text-white font-mono">Live Multi-Modal Classifier</span>
-        </div>
-        <div className="flex rounded-md border border-[#222634] bg-[#0c0e14] p-0.5 text-[10px]">
-          <button
-            onClick={() => setActiveTab('image')}
-            className={`rounded px-2 py-0.5 font-semibold transition-colors ${
-              activeTab === 'image' ? 'bg-brand-600 text-white' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Photos
-          </button>
-          <button
-            onClick={() => setActiveTab('doc')}
-            className={`rounded px-2 py-0.5 font-semibold transition-colors ${
-              activeTab === 'doc' ? 'bg-brand-600 text-white' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Documents
-          </button>
-        </div>
-      </div>
+  useEffect(() => {
+    const clockTimer = setInterval(() => setNow(Date.now()), 1000)
+    const seeingTimer = setInterval(() => {
+      // Atmospheric seeing walks between 1.0 and 2.1 arcseconds
+      setSeeing(prev => {
+        const delta = (Math.random() - 0.5) * 0.22
+        return Math.max(1.0, Math.min(2.1, Number((prev + delta).toFixed(2))))
+      })
+    }, 3000)
 
-      {/* Interactive Item Pair */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-2.5 text-xs">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="grid h-5 w-5 shrink-0 place-items-center rounded bg-emerald-500 text-slate-950 font-bold text-[9px]">
-              ★
-            </span>
-            <div className="min-w-0">
-              <p className="font-semibold text-white truncate text-[11px]">
-                {activeTab === 'image' ? 'IMG_2025_Master_RAW.dng' : 'Q4_Financial_Report_Final.pdf'}
-              </p>
-              <p className="text-[10px] text-emerald-300 font-mono">
-                {activeTab === 'image' ? '34.2 MB · 6000x4000 · 100% Quality' : '2.4 MB · 18 pages · Clean Text'}
-              </p>
-            </div>
-          </div>
-          <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-300 border border-emerald-500/40 shrink-0">
-            MASTER
-          </span>
-        </div>
+    return () => {
+      clearInterval(clockTimer)
+      clearInterval(seeingTimer)
+    }
+  }, [])
 
-        <div className="flex items-center justify-between rounded-lg border border-[#222634] bg-[#0c0e14] p-2.5 text-xs">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 shrink-0 ml-1.5" />
-            <div className="min-w-0">
-              <p className="font-semibold text-slate-300 truncate text-[11px]">
-                {activeTab === 'image' ? 'IMG_2025_Resized_Copy.jpg' : 'Q4_Financial_Report_Draft.docx'}
-              </p>
-              <p className="text-[10px] text-slate-500 font-mono">
-                {activeTab === 'image' ? '4.1 MB · 1920x1080 · 72 DPI' : '1.8 MB · 16 pages · 94% N-gram'}
-              </p>
-            </div>
-          </div>
-          <span className="text-[10px] font-mono font-bold text-brand-400 shrink-0">
-            {slider}% Match
-          </span>
-        </div>
-      </div>
+  // 1. Julian Date
+  const jd = now / 86400000 + 2440587.5
+  const T = (jd - 2451545.0) / 36525.0
 
-      {/* Interactive Similarity Bar */}
-      <div className="mt-4 pt-3 border-t border-[#1e2230] space-y-2">
-        <div className="flex items-center justify-between text-[11px]">
-          <span className="text-slate-400 flex items-center gap-1.5">
-            <Sliders size={12} className="text-brand-400" />
-            <span>Sensitivity Simulation:</span>
-          </span>
-          <span className="font-mono font-bold text-brand-400">≥ {slider}%</span>
-        </div>
-        <input
-          type="range"
-          min="70"
-          max="99"
-          value={slider}
-          onChange={e => setSlider(Number(e.target.value))}
-          className="w-full h-1.5 bg-[#1e2230] rounded-lg appearance-none cursor-pointer accent-brand-500"
-        />
-      </div>
-    </div>
-  )
+  // 2. Greenwich Mean Sidereal Time (GMST) in degrees -> HH:MM:SS
+  const rawGmst = 280.46061837 + 360.98564736629 * (jd - 2451545.0) + 0.000387933 * T * T
+  const gmstDeg = ((rawGmst % 360) + 360) % 360
+  const gmstHoursTotal = (gmstDeg / 360) * 24
+  const gHours = Math.floor(gmstHoursTotal)
+  const gMinutes = Math.floor((gmstHoursTotal - gHours) * 60)
+  const gSeconds = Math.floor(((gmstHoursTotal - gHours) * 60 - gMinutes) * 60)
+  const siderealStr = `${String(gHours).padStart(2, '0')}:${String(gMinutes).padStart(2, '0')}:${String(gSeconds).padStart(2, '0')}`
+
+  // 3. Moon Phase from synodic month age
+  const moonAge = ((jd - 2451550.1) % 29.530588853 + 29.530588853) % 29.530588853
+  const moonPhases = [
+    'New Moon',
+    'Waxing Crescent',
+    'First Quarter',
+    'Waxing Gibbous',
+    'Full Moon',
+    'Waning Gibbous',
+    'Last Quarter',
+    'Waning Crescent'
+  ]
+  const moonPhaseIndex = Math.floor((moonAge / 29.530588853) * 8) % 8
+  const moonPhaseName = moonPhases[moonPhaseIndex]
+
+  return {
+    sidereal: siderealStr,
+    moonPhase: moonPhaseName,
+    moonAge: moonAge.toFixed(1),
+    seeing: seeing.toFixed(2),
+    bodiesCount: '90,000'
+  }
 }
 
+/* ========================================================================== */
+/* MAIN ASTRONOMICAL ORRERY AUTHENTICATION PAGE                               */
+/* ========================================================================== */
 export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => void }) {
   const { login, signup, forgotPassword } = useAuth()
+  const ephemeris = useEphemeris()
 
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>('signin')
   const [name, setName] = useState('')
@@ -270,14 +486,14 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const quickDemoAccounts = [
-    { label: '⚡ Admin Demo', email: 'alex.morgan@workspace.io', pass: 'password123', role: 'Full Admin' },
-    { label: '👤 Analyst Demo', email: 'jordan.lee@storage.dev', pass: 'analyst2026', role: 'Analyst' }
+  const quickRoles = [
+    { title: 'Chief Astrometer', email: 'alex.morgan@workspace.io', pass: 'password123', badge: 'Observatory Admin' },
+    { title: 'Meridian Transit', email: 'jordan.lee@storage.dev', pass: 'analyst2026', badge: 'Cluster Analyst' }
   ]
 
-  const handleQuickFill = (acc: typeof quickDemoAccounts[0]) => {
-    setEmail(acc.email)
-    setPassword(acc.pass)
+  const handleQuickFill = (role: typeof quickRoles[0]) => {
+    setEmail(role.email)
+    setPassword(role.pass)
     setError(null)
   }
 
@@ -313,7 +529,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
     }
   }
 
-  const handleInstantLaunch = async () => {
+  const handleGuestLaunch = async () => {
     setLoading(true)
     await login('alex.morgan@workspace.io', 'password123', true)
     setLoading(false)
@@ -321,91 +537,125 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
   }
 
   return (
-    <div className="relative min-h-screen bg-[#0c0e14] text-slate-100 flex flex-col justify-between selection:bg-brand-500/30 selection:text-brand-200 overflow-hidden">
-      {/* Interactive Background Particle Mesh */}
-      <InteractiveNeuralBackground />
+    <div className="relative min-h-screen w-full bg-[#05060b] text-[#e8e6df] font-sans selection:bg-[#ffcf7a]/30 selection:text-[#ffcf7a] flex flex-col justify-between overflow-x-hidden">
+      {/* 1. Raw WebGL2 90,000 Keplerian Orbits Canvas (z-index 0) */}
+      <WebGLOrrery speedMultiplier={1.0} />
 
-      {/* Subtle Glow Spheres */}
-      <div className="pointer-events-none absolute -left-40 -top-40 h-96 w-96 rounded-full bg-brand-600/10 blur-[130px]" />
-      <div className="pointer-events-none absolute -right-40 -bottom-40 h-96 w-96 rounded-full bg-emerald-500/10 blur-[130px]" />
+      {/* 2. Fixed Radial Vignette (Rule 7: No CSS filter on canvas) */}
+      <div
+        className="pointer-events-none fixed inset-0 z-[1]"
+        style={{
+          background: 'radial-gradient(circle at 50% 50%, rgba(5, 6, 11, 0.25) 0%, rgba(5, 6, 11, 0.75) 60%, #05060b 95%)'
+        }}
+      />
 
-      {/* Top Bar */}
-      <header className="relative z-10 flex h-16 items-center justify-between px-6 sm:px-12 border-b border-[#1e2230]/80 bg-[#0c0e14]/70 backdrop-blur-md">
+      {/* 3. Top Observatory Navigation & Live Ephemeris Bar (z-index 10) */}
+      <header className="relative z-10 flex h-16 items-center justify-between border-b border-white/[0.08] px-6 sm:px-12 bg-[#05060b]/60 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="grid h-8 w-8 place-items-center rounded-lg bg-brand-600 text-white shadow-glow">
-            <Sparkles size={16} />
+          <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#ffcf7a]/15 text-[#ffcf7a] border border-[#ffcf7a]/30 shadow-sm">
+            <Orbit size={16} />
           </div>
           <div>
-            <span className="font-display font-bold text-sm tracking-tight text-white">
-              Dedupe<span className="text-brand-400">IQ</span>
+            <span className="font-display font-bold text-sm tracking-tight text-[#e8e6df]">
+              Dedupe<span className="text-[#ffcf7a]">IQ</span>
             </span>
-            <span className="ml-2 text-[9px] uppercase font-mono tracking-widest text-slate-500">
-              Desktop Edition
+            <span className="ml-2 text-[9px] uppercase font-mono tracking-widest text-[#7c7a86]">
+              Kepler Edition
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-400 border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-md">
-            <ShieldCheck size={13} />
-            <span>100% Local-First Engine</span>
+        {/* Live Ephemeris Telemetry HUD */}
+        <div className="hidden lg:flex items-center gap-4 text-[11px] font-mono text-[#7c7a86] border border-white/[0.08] bg-[#05060b]/80 px-3.5 py-1.5 rounded-full">
+          <div className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#e0563c] animate-pulse" />
+            <span className="text-[#e8e6df]">Bodies: {ephemeris.bodiesCount}</span>
           </div>
+          <span>·</span>
+          <div>
+            <span>Sidereal: </span>
+            <strong className="text-[#ffcf7a]">{ephemeris.sidereal}</strong>
+          </div>
+          <span>·</span>
+          <div>
+            <span>Seeing: </span>
+            <strong className="text-[#e8e6df]">{ephemeris.seeing}″</strong>
+          </div>
+          <span>·</span>
+          <div>
+            <span>Moon: </span>
+            <strong className="text-[#e8e6df]">{ephemeris.moonPhase} ({ephemeris.moonAge}d)</strong>
+          </div>
+        </div>
 
+        {/* Quick Launch CTA */}
+        <div className="flex items-center gap-2.5">
           <button
-            onClick={handleInstantLaunch}
-            className="flex items-center gap-1.5 text-xs font-semibold text-brand-300 hover:text-white bg-[#1c2130] hover:bg-brand-600 border border-brand-500/30 px-3 py-1.5 rounded-lg transition-all shadow-sm"
+            onClick={handleGuestLaunch}
+            disabled={loading}
+            className="flex items-center gap-1.5 text-xs font-semibold text-[#05060b] bg-[#ffcf7a] hover:bg-[#ffe0a3] px-3.5 py-1.5 rounded-lg transition-all shadow-[0_0_15px_rgba(255,207,122,0.3)] cursor-pointer"
           >
-            <Zap size={13} className="text-brand-400" />
+            <Zap size={13} />
             <span>Instant Demo</span>
           </button>
         </div>
       </header>
 
-      {/* Main Layout Area */}
+      {/* 4. Centered Almanac & Login Console (z-index 10) */}
       <main className="relative z-10 flex-1 flex items-center justify-center p-5 sm:p-10">
-        <div className="w-full max-w-5xl grid lg:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
-          {/* Left Column: Interactive Value Proposition & Mini Playground */}
+        <div className="w-full max-w-4xl grid lg:grid-cols-[1.1fr_0.9fr] gap-8 lg:gap-12 items-center">
+          {/* Left: Atmospheric Astronomical Manifesto */}
           <div className="hidden lg:flex flex-col space-y-6">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-3 py-1 text-[11px] font-semibold text-brand-300 mb-3">
-                <span className="h-2 w-2 rounded-full bg-brand-400 animate-ping" />
-                <span>Multi-Modal Deduplication AI</span>
+              <div className="inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-[#e0563c] mb-3">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#e0563c]" />
+                <span>Orbiting File Deduplication</span>
               </div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-white font-display leading-tight">
-                Organize Your Files With Precision & Clarity.
+
+              <h1 className="text-3xl xl:text-4xl font-extrabold tracking-tight text-[#e8e6df] font-display leading-[1.15]">
+                Ninety thousand orbits. <br />
+                <span className="text-[#ffcf7a]">Zero duplicate drift.</span>
               </h1>
-              <p className="mt-2 text-xs text-slate-400 leading-relaxed max-w-md">
-                Automatically detect identical byte copies, resized camera photos, and cross-format document revisions without moving a single file outside your device.
+
+              <p className="mt-3 text-xs text-[#7c7a86] leading-relaxed max-w-md">
+                Every duplicate copy is indexed like a celestial body on a pure Keplerian trajectory. Identify bit-for-bit SHA-256 matches, visual photo variations, and document revisions with mathematical certainty.
               </p>
             </div>
 
-            {/* Interactive Live Demo Card */}
-            <InteractiveDedupeDemo />
+            {/* Drag Hint & Mechanics Badges */}
+            <div className="rounded-xl border border-white/[0.08] bg-[#0c0e14]/70 p-4 space-y-3 backdrop-blur-md">
+              <div className="flex items-center justify-between text-xs border-b border-white/[0.06] pb-2.5">
+                <span className="text-[#7c7a86] flex items-center gap-1.5">
+                  <Compass size={13} className="text-[#ffcf7a]" />
+                  <span>Interactive Celestial Sphere:</span>
+                </span>
+                <span className="text-[11px] font-mono text-[#ffcf7a]">Drag sky to rotate</span>
+              </div>
 
-            {/* 3 Core Pillars */}
-            <div className="grid grid-cols-3 gap-3 pt-1">
-              <div className="rounded-xl border border-[#1e2230] bg-[#11141d]/70 p-3 text-xs">
-                <p className="font-bold text-white text-[11px]">Cryptographic Pass</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">SHA-256 instant bit matches</p>
-              </div>
-              <div className="rounded-xl border border-[#1e2230] bg-[#11141d]/70 p-3 text-xs">
-                <p className="font-bold text-brand-300 text-[11px]">Perceptual Vision</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">pHash & dHash visual similarity</p>
-              </div>
-              <div className="rounded-xl border border-[#1e2230] bg-[#11141d]/70 p-3 text-xs">
-                <p className="font-bold text-emerald-400 text-[11px]">Safe Quarantine</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">30-day instant restore net</p>
+              <div className="grid grid-cols-3 gap-2 text-[10px] font-mono text-[#7c7a86]">
+                <div className="p-2 rounded bg-black/40 border border-white/[0.05]">
+                  <p className="text-[#e8e6df] font-bold">5 Bands</p>
+                  <p className="mt-0.5 text-[9px]">Gapped belts</p>
+                </div>
+                <div className="p-2 rounded bg-black/40 border border-white/[0.05]">
+                  <p className="text-[#ffcf7a] font-bold">n = 0.42/a^1.5</p>
+                  <p className="mt-0.5 text-[9px]">3rd Law Motion</p>
+                </div>
+                <div className="p-2 rounded bg-black/40 border border-white/[0.05]">
+                  <p className="text-[#10b981] font-bold">4 Newton Steps</p>
+                  <p className="mt-0.5 text-[9px]">Exact anomalies</p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Clean & Interactive Login Card */}
+          {/* Right: Focused Desktop Authentication Deck */}
           <div className="w-full max-w-md mx-auto">
-            <Card className="p-6 sm:p-8 bg-[#11141d]/90 border-[#222634] shadow-2xl backdrop-blur-2xl">
+            <Card className="p-6 sm:p-8 bg-[#0c0e14]/90 border-white/[0.12] shadow-2xl backdrop-blur-2xl">
               {/* Tab Selector */}
               <div className="mb-6">
                 {mode !== 'forgot' ? (
-                  <div className="grid grid-cols-2 gap-1 rounded-lg border border-[#222634] bg-[#0c0e14] p-1 text-xs">
+                  <div className="grid grid-cols-2 gap-1 rounded-lg border border-white/[0.08] bg-[#05060b] p-1 text-xs font-mono">
                     <button
                       type="button"
                       onClick={() => {
@@ -413,10 +663,10 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
                         setError(null)
                         setSuccessMessage(null)
                       }}
-                      className={`relative rounded-md py-2 font-semibold transition-all ${
+                      className={`rounded-md py-2 font-semibold transition-all ${
                         mode === 'signin'
-                          ? 'bg-[#1b1f2b] text-white shadow-sm border border-[#2d3448]'
-                          : 'text-slate-400 hover:text-white'
+                          ? 'bg-[#181b26] text-[#ffcf7a] shadow-sm border border-white/[0.1]'
+                          : 'text-[#7c7a86] hover:text-[#e8e6df]'
                       }`}
                     >
                       Sign In
@@ -428,20 +678,20 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
                         setError(null)
                         setSuccessMessage(null)
                       }}
-                      className={`relative rounded-md py-2 font-semibold transition-all ${
+                      className={`rounded-md py-2 font-semibold transition-all ${
                         mode === 'signup'
-                          ? 'bg-[#1b1f2b] text-white shadow-sm border border-[#2d3448]'
-                          : 'text-slate-400 hover:text-white'
+                          ? 'bg-[#181b26] text-[#ffcf7a] shadow-sm border border-white/[0.1]'
+                          : 'text-[#7c7a86] hover:text-[#e8e6df]'
                       }`}
                     >
-                      Create Account
+                      New Observer
                     </button>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] uppercase font-bold tracking-wider text-brand-400">Account Recovery</span>
-                      <h2 className="text-base font-bold text-white mt-0.5">Reset Password</h2>
+                      <span className="text-[10px] uppercase font-mono tracking-wider text-[#e0563c]">Recovery</span>
+                      <h2 className="text-base font-bold text-white mt-0.5">Reset Session Key</h2>
                     </div>
                     <button
                       type="button"
@@ -450,7 +700,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
                         setError(null)
                         setSuccessMessage(null)
                       }}
-                      className="text-xs text-brand-400 hover:underline font-medium"
+                      className="text-xs text-[#ffcf7a] hover:underline font-mono"
                     >
                       ← Back to Sign In
                     </button>
@@ -458,10 +708,10 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
                 )}
               </div>
 
-              {/* Error & Success Messages */}
+              {/* Notification Banners */}
               {error && (
                 <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-xs text-rose-300 flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-rose-400 shrink-0" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#e0563c] shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
@@ -472,19 +722,19 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
                 </div>
               )}
 
-              {/* Form */}
+              {/* Form Fields */}
               <form onSubmit={handleSubmit} className="space-y-4">
                 {mode === 'signup' && (
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-300">Full Name</label>
+                    <label className="text-[11px] font-semibold text-slate-300 font-mono">Observer Name</label>
                     <div className="relative">
-                      <User size={14} className="absolute left-3 top-3 text-slate-500" />
+                      <User size={14} className="absolute left-3 top-3 text-[#7c7a86]" />
                       <input
                         type="text"
-                        placeholder="Alex Morgan"
+                        placeholder="Dr. Alex Morgan"
                         value={name}
                         onChange={e => setName(e.target.value)}
-                        className="w-full rounded-lg border border-[#272d3f] bg-[#0c0e14] pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-brand-500"
+                        className="w-full rounded-lg border border-white/[0.1] bg-[#05060b] pl-9 pr-3 py-2 text-xs text-white placeholder-slate-600 outline-none focus:border-[#ffcf7a]"
                         required
                       />
                     </div>
@@ -492,15 +742,15 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
                 )}
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-300">Email Address</label>
+                  <label className="text-[11px] font-semibold text-slate-300 font-mono">Workstation Email</label>
                   <div className="relative">
-                    <Mail size={14} className="absolute left-3 top-3 text-slate-500" />
+                    <Mail size={14} className="absolute left-3 top-3 text-[#7c7a86]" />
                     <input
                       type="email"
                       placeholder="alex.morgan@workspace.io"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className="w-full rounded-lg border border-[#272d3f] bg-[#0c0e14] pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-brand-500"
+                      className="w-full rounded-lg border border-white/[0.1] bg-[#05060b] pl-9 pr-3 py-2 text-xs text-white placeholder-slate-600 outline-none focus:border-[#ffcf7a]"
                       required
                     />
                   </div>
@@ -509,31 +759,31 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
                 {mode !== 'forgot' && (
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-semibold text-slate-300">Password</label>
+                      <label className="text-[11px] font-semibold text-slate-300 font-mono">Passkey</label>
                       {mode === 'signin' && (
                         <button
                           type="button"
                           onClick={() => setMode('forgot')}
-                          className="text-[10px] text-brand-400 hover:underline"
+                          className="text-[10px] text-[#ffcf7a] hover:underline font-mono"
                         >
-                          Forgot password?
+                          Forgot passkey?
                         </button>
                       )}
                     </div>
                     <div className="relative">
-                      <Lock size={14} className="absolute left-3 top-3 text-slate-500" />
+                      <Lock size={14} className="absolute left-3 top-3 text-[#7c7a86]" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         value={password}
                         onChange={e => setPassword(e.target.value)}
-                        className="w-full rounded-lg border border-[#272d3f] bg-[#0c0e14] pl-9 pr-10 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-brand-500 font-mono"
+                        className="w-full rounded-lg border border-white/[0.1] bg-[#05060b] pl-9 pr-10 py-2 text-xs text-white placeholder-slate-600 outline-none focus:border-[#ffcf7a] font-mono"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-2.5 text-slate-500 hover:text-white"
+                        className="absolute right-3 top-2.5 text-[#7c7a86] hover:text-white"
                         tabIndex={-1}
                       >
                         {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -544,15 +794,15 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
 
                 {mode === 'signup' && (
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-300">Confirm Password</label>
+                    <label className="text-[11px] font-semibold text-slate-300 font-mono">Confirm Passkey</label>
                     <div className="relative">
-                      <Lock size={14} className="absolute left-3 top-3 text-slate-500" />
+                      <Lock size={14} className="absolute left-3 top-3 text-[#7c7a86]" />
                       <input
                         type="password"
                         placeholder="••••••••"
                         value={confirmPassword}
                         onChange={e => setConfirmPassword(e.target.value)}
-                        className="w-full rounded-lg border border-[#272d3f] bg-[#0c0e14] pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-brand-500 font-mono"
+                        className="w-full rounded-lg border border-white/[0.1] bg-[#05060b] pl-9 pr-3 py-2 text-xs text-white placeholder-slate-600 outline-none focus:border-[#ffcf7a] font-mono"
                         required
                       />
                     </div>
@@ -561,59 +811,59 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
 
                 {mode === 'signin' && (
                   <div className="flex items-center justify-between pt-0.5">
-                    <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer select-none">
+                    <label className="flex items-center gap-2 text-xs text-[#7c7a86] cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={rememberMe}
                         onChange={e => setRememberMe(e.target.checked)}
-                        className="h-3.5 w-3.5 rounded border-[#272d3f] bg-[#0c0e14] text-brand-600 focus:ring-brand-500 cursor-pointer"
+                        className="h-3.5 w-3.5 rounded border-white/[0.15] bg-[#05060b] text-[#ffcf7a] focus:ring-[#ffcf7a] cursor-pointer accent-[#ffcf7a]"
                       />
-                      <span className="text-[11px]">Remember workstation session</span>
+                      <span className="text-[11px] font-mono">Persist Observatory Session</span>
                     </label>
                   </div>
                 )}
 
-                <div className="pt-2 space-y-2">
+                <div className="pt-2">
                   <Button
                     type="submit"
                     size="md"
                     disabled={loading}
-                    className="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs h-9.5 shadow-sm"
+                    className="w-full bg-[#ffcf7a] hover:bg-[#ffe0a3] text-[#05060b] font-bold text-xs h-10 shadow-[0_0_20px_rgba(255,207,122,0.2)] cursor-pointer"
                   >
                     {loading ? (
-                      'Authenticating...'
+                      'Aligning Coordinates...'
                     ) : mode === 'signin' ? (
-                      'Sign In to Workspace'
+                      'Open Observatory Session'
                     ) : mode === 'signup' ? (
-                      'Create Local Account'
+                      'Register Observatory Key'
                     ) : (
                       'Send Reset Instructions'
                     )}
-                    <ArrowRight size={13} />
+                    <ArrowRight size={14} />
                   </Button>
                 </div>
               </form>
 
-              {/* Quick Fill Demo Credentials Chips */}
+              {/* Fast Preset Roles */}
               {mode === 'signin' && (
-                <div className="mt-5 pt-4 border-t border-[#1e2230] space-y-2">
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                    <span>⚡ Quick Preset Credentials:</span>
+                <div className="mt-5 pt-4 border-t border-white/[0.08] space-y-2">
+                  <div className="flex items-center justify-between text-[10px] text-[#7c7a86] font-mono">
+                    <span>⚡ Quick Preset Access:</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    {quickDemoAccounts.map(acc => (
+                    {quickRoles.map(role => (
                       <button
-                        key={acc.label}
+                        key={role.title}
                         type="button"
-                        onClick={() => handleQuickFill(acc)}
-                        className="flex items-center justify-between rounded-lg border border-[#272d3f] bg-[#0c0e14] px-2.5 py-1.5 text-left hover:border-brand-500/50 hover:bg-[#161922] transition-colors group"
+                        onClick={() => handleQuickFill(role)}
+                        className="flex items-center justify-between rounded-lg border border-white/[0.08] bg-[#05060b] px-2.5 py-1.5 text-left hover:border-[#ffcf7a]/40 hover:bg-[#12151e] transition-colors group cursor-pointer"
                       >
                         <div className="min-w-0">
-                          <p className="text-[11px] font-bold text-white truncate">{acc.label}</p>
-                          <p className="text-[9px] text-slate-500 font-mono truncate">{acc.email.split('@')[0]}</p>
+                          <p className="text-[11px] font-bold text-[#e8e6df] truncate">{role.title}</p>
+                          <p className="text-[9px] text-[#7c7a86] font-mono truncate">{role.badge}</p>
                         </div>
-                        <span className="text-[10px] text-slate-500 group-hover:text-brand-400 font-mono">fill</span>
+                        <span className="text-[10px] text-[#7c7a86] group-hover:text-[#ffcf7a] font-mono shrink-0 pl-1">fill</span>
                       </button>
                     ))}
                   </div>
@@ -624,10 +874,13 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 flex h-12 items-center justify-between border-t border-[#1e2230]/80 bg-[#0c0e14]/70 px-6 sm:px-12 text-[10px] text-slate-500 font-mono backdrop-blur-md">
-        <span>DedupeIQ Multi-Modal Storage Organizer v1.0</span>
-        <span className="hidden sm:inline">SHA-256 · Perceptual Hashes · Louvain Community Clustering</span>
+      {/* 5. Minimalist Observatory Footer (z-index 10) */}
+      <footer className="relative z-10 flex h-12 items-center justify-between border-t border-white/[0.08] px-6 sm:px-12 text-[10px] text-[#7c7a86] font-mono bg-[#05060b]/70 backdrop-blur-md">
+        <div className="flex items-center gap-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#e0563c]" />
+          <span>ORRERY KEPLER 90k · Local Memory Only</span>
+        </div>
+        <span className="hidden sm:inline">GMST {ephemeris.sidereal} · Seeing {ephemeris.seeing}″ · Bortle 4</span>
       </footer>
     </div>
   )
