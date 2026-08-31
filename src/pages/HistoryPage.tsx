@@ -49,7 +49,7 @@ export default function HistoryPage() {
         <div className="hidden sm:grid grid-cols-[1.5fr_0.8fr_0.8fr_0.8fr_1fr] gap-4 border-b border-[#1e2230] bg-[#0f121a] px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
           <span>Target Directory</span>
           <span>Files Analyzed</span>
-          <span>Clusters Detected</span>
+          <span>Duplicate Groups</span>
           <span>Recovered</span>
           <span>Execution Date</span>
         </div>
@@ -82,8 +82,8 @@ export default function HistoryPage() {
                 </div>
 
                 <div className="flex items-center justify-between sm:block">
-                  <span className="text-slate-400 sm:hidden">Clusters:</span>
-                  <span className="font-semibold text-brand-300">{scan.groups} clusters</span>
+                  <span className="text-slate-400 sm:hidden">Duplicate Groups:</span>
+                  <span className="font-semibold text-brand-300">{scan.groups} groups</span>
                 </div>
 
                 <div className="flex items-center justify-between sm:block">

@@ -10,5 +10,4 @@ __pycache__/
 .DS_Store
 Thumbs.db
 .pytest_cache/
-*.mp4
-public/assets/*.mp4
+12421439_3840_2160_30fps.mp4

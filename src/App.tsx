@@ -17,31 +17,131 @@ function AuthenticatedApp() {
 
   if (isLoading) {
     return (
-      <div className="app-canvas min-h-screen flex items-center justify-center text-xs text-slate-400 font-mono">
+      <div className="min-h-screen bg-[#090a0f] flex items-center justify-center text-xs text-slate-400 font-mono">
         Initializing workspace session...
       </div>
     )
   }
 
-  if (!isAuthenticated) {
-    return <AuthPage />
-  }
-
   return (
-    <AppShell>
-      <Routes>
-        <Route path="/" element={<OverviewPage />} />
-        <Route path="/scan" element={<ScanPage />} />
-        <Route path="/groups" element={<DuplicateGroupsPage />} />
-        <Route path="/groups/:groupId" element={<ReviewGroupPage />} />
-        <Route path="/images" element={<DuplicateGroupsPage filter="image" />} />
-        <Route path="/documents" element={<DuplicateGroupsPage filter="document" />} />
-        <Route path="/quarantine" element={<QuarantinePage />} />
-        <Route path="/history" element={<HistoryPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </AppShell>
+    <Routes>
+      {/* Standalone Authentication Route */}
+      <Route
+        path="/login"
+        element={isAuthenticated ? <Navigate to="/" replace /> : <AuthPage />}
+      />
+
+      {/* Protected Dashboard Routes inside AppShell */}
+      <Route
+        path="/"
+        element={
+          isAuthenticated ? (
+            <AppShell>
+              <OverviewPage />
+            </AppShell>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/scan"
+        element={
+          isAuthenticated ? (
+            <AppShell>
+              <ScanPage />
+            </AppShell>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/groups"
+        element={
+          isAuthenticated ? (
+            <AppShell>
+              <DuplicateGroupsPage />
+            </AppShell>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/groups/:groupId"
+        element={
+          isAuthenticated ? (
+            <AppShell>
+              <ReviewGroupPage />
+            </AppShell>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/images"
+        element={
+          isAuthenticated ? (
+            <AppShell>
+              <DuplicateGroupsPage filter="image" />
+            </AppShell>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/documents"
+        element={
+          isAuthenticated ? (
+            <AppShell>
+              <DuplicateGroupsPage filter="document" />
+            </AppShell>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/quarantine"
+        element={
+          isAuthenticated ? (
+            <AppShell>
+              <QuarantinePage />
+            </AppShell>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          isAuthenticated ? (
+            <AppShell>
+              <HistoryPage />
+            </AppShell>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          isAuthenticated ? (
+            <AppShell>
+              <SettingsPage />
+            </AppShell>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
 
