@@ -12,11 +12,15 @@ import { formatBytes, formatDate } from '../lib/utils'
 import { ScanRecord } from '../types'
 import { Card, SectionTitle, Badge } from '../components/ui'
 
+import { useAuth } from '../context/AuthContext'
+
 export default function HistoryPage() {
+  const { user } = useAuth()
   const { data: history = [], isLoading, refetch } = useQuery<ScanRecord[]>({
-    queryKey: ['history'],
-    queryFn: fetchHistory
+    queryKey: ['history', user?.email],
+    queryFn: () => fetchHistory(user?.email)
   })
+
 
   return (
     <div className="space-y-6">

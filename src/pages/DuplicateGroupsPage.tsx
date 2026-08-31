@@ -24,11 +24,15 @@ import { Card, SectionTitle, Button, Badge, Input } from '../components/ui'
 import ImageCompareModal from '../components/ImageCompareModal'
 import DocumentDiffViewer from '../components/DocumentDiffViewer'
 
+import { useAuth } from '../context/AuthContext'
+
 export default function DuplicateGroupsPage({ filter }: { filter?: 'image' | 'document' } = {}) {
+  const { user } = useAuth()
   const { data: groups = [], isLoading, refetch } = useQuery<DuplicateGroup[]>({
-    queryKey: ['groups'],
-    queryFn: fetchGroups
+    queryKey: ['groups', user?.email],
+    queryFn: () => fetchGroups(user?.email)
   })
+
 
   const [tab, setTab] = useState<string>('All')
   const [search, setSearch] = useState('')

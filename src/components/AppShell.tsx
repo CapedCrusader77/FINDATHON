@@ -58,8 +58,14 @@ export default function AppShell({ children }: AppShellProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
-  const { data: groups = [] } = useQuery<DuplicateGroup[]>({ queryKey: ['groups'], queryFn: fetchGroups })
-  const { data: dashboard } = useQuery<DashboardData>({ queryKey: ['dashboard'], queryFn: fetchDashboard })
+  const { data: groups = [] } = useQuery<DuplicateGroup[]>({
+    queryKey: ['groups', user?.email],
+    queryFn: () => fetchGroups(user?.email)
+  })
+  const { data: dashboard } = useQuery<DashboardData>({
+    queryKey: ['dashboard', user?.email],
+    queryFn: () => fetchDashboard(user?.email)
+  })
 
   // Keyboard shortcut Cmd/Ctrl + K
   useEffect(() => {

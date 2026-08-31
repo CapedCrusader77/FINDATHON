@@ -21,21 +21,26 @@ import { DashboardData, DuplicateGroup, ScanRecord } from '../types'
 import { Card, SectionTitle, Button, Badge } from '../components/ui'
 import RecoverySimulator from '../components/RecoverySimulator'
 
+import { useAuth } from '../context/AuthContext'
+
 export default function OverviewPage() {
+  const { user } = useAuth()
+
   const { data: dashboard, isLoading, refetch } = useQuery<DashboardData>({
-    queryKey: ['dashboard'],
-    queryFn: fetchDashboard
+    queryKey: ['dashboard', user?.email],
+    queryFn: () => fetchDashboard(user?.email)
   })
 
   const { data: groups = [] } = useQuery<DuplicateGroup[]>({
-    queryKey: ['groups'],
-    queryFn: fetchGroups
+    queryKey: ['groups', user?.email],
+    queryFn: () => fetchGroups(user?.email)
   })
 
   const { data: history = [] } = useQuery<ScanRecord[]>({
-    queryKey: ['history'],
-    queryFn: fetchHistory
+    queryKey: ['history', user?.email],
+    queryFn: () => fetchHistory(user?.email)
   })
+
 
   if (isLoading || !dashboard) {
     return (

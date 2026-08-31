@@ -21,16 +21,20 @@ import ImageCompareModal from '../components/ImageCompareModal'
 import DocumentDiffViewer from '../components/DocumentDiffViewer'
 import { useToast } from '../components/Toast'
 
+import { useAuth } from '../context/AuthContext'
+
 export default function ReviewGroupPage() {
   const { groupId } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { pushToast } = useToast()
+  const { user } = useAuth()
 
   const { data: groups = [] } = useQuery<DuplicateGroup[]>({
-    queryKey: ['groups'],
-    queryFn: fetchGroups
+    queryKey: ['groups', user?.email],
+    queryFn: () => fetchGroups(user?.email)
   })
+
 
   const group = groups.find(g => g.id === groupId) || groups[0]
 

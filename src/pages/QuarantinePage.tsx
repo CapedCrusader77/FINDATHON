@@ -16,14 +16,18 @@ import { QuarantineItem } from '../types'
 import { Card, SectionTitle, Button, Badge } from '../components/ui'
 import { useToast } from '../components/Toast'
 
+import { useAuth } from '../context/AuthContext'
+
 export default function QuarantinePage() {
   const queryClient = useQueryClient()
   const { pushToast } = useToast()
+  const { user } = useAuth()
 
   const { data: items = [], isLoading, refetch } = useQuery<QuarantineItem[]>({
-    queryKey: ['quarantine'],
-    queryFn: fetchQuarantine
+    queryKey: ['quarantine', user?.email],
+    queryFn: () => fetchQuarantine(user?.email)
   })
+
 
   const totalBytes = items.reduce((sum, item) => sum + item.size, 0)
 
