@@ -1,129 +1,200 @@
-# DedupeIQ
+# 🗂️ FINDATHON — DedupeIQ
 
-**Find what looks the same, reads the same, and wastes your storage.**
+> **A smart cleaner for your computer that finds files which are exactly the same or almost the same, tells you which copy is best, and helps you safely remove unnecessary copies.**
 
-DedupeIQ is a local-first duplicate file finder for personal storage. It combines deterministic hashing, perceptual image fingerprints, normalized document text, and explainable multi-signal similarity to surface logical duplicate groups before anything is moved or deleted.
+---
 
-> The current build includes a polished React/Vite product shell, demo workspace, browser folder upload path, Flask scan API, exact hashing, image/document candidate scoring, grouping, quarantine workflow, settings, scan history, and backend tests.
+## 📖 What is this?
 
-## Screenshots
+Think of your computer like a messy bedroom. Over time you accumulate:
 
-Screenshots can be added here after running `npm run dev`:
-
-- `docs/screenshots/overview.png` — dashboard and storage recovery overview
-- `docs/screenshots/review.png` — explainable duplicate group review
-- `docs/screenshots/scan.png` — live local scan workflow
-
-## Architecture
-
-```mermaid
-flowchart LR
-  UI[React + Vite UI] -->|REST / polling| API[Flask Blueprints]
-  API --> SCAN[Scanner service]
-  SCAN --> HASH[SHA-256 cache]
-  SCAN --> IMG[Image fingerprints]
-  SCAN --> DOC[Text extractors]
-  IMG --> SIM[Hybrid similarity]
-  DOC --> SIM
-  SIM --> CLUSTER[Duplicate group builder]
-  CLUSTER --> REPO[Repository boundary]
-  REPO --> MONGO[(MongoDB metadata)]
-  API --> SAFE[Quarantine + restore]
+```
+photo.jpg
+photo_copy.jpg
+photo_whatsapp.jpg
+photo_small.jpg
+report.docx
+report_final.docx
+report_final2.pdf
 ```
 
-The frontend is organized around routes, reusable UI primitives, query-backed data access, and domain types. The backend keeps discovery, extraction, similarity, grouping, and persistence concerns separate so the in-memory development store can be replaced by MongoDB without changing API handlers.
+Most of these are basically **the same thing** with small differences — a resize, a compression, a re-export. Ordinary duplicate finders only catch *exact* copies (same bytes). **DedupeIQ goes further**: it looks *inside* files and understands what they actually contain.
 
-## Features
+---
 
-- Exact duplicate detection with SHA-256.
-- Near-duplicate image detection with pHash, dHash, and aHash.
-- TXT, PDF, DOCX, and PPTX text extraction and normalization.
-- Hybrid document/image scoring with confidence bands and signal explanations.
-- Connected duplicate groups with best-copy recommendations.
-- Safe review → quarantine → restore/permanent deletion flow.
-- Local-first privacy messaging and no third-party AI dependency.
-- Responsive desktop-first shell with dark mode, keyboard-visible focus states, reduced-motion support, and compact mobile navigation.
-- Demo workspace data for presentations without a large file corpus.
+## 🧠 How it works
 
-## Detection pipeline
+**You give it a folder. It asks for every file:**
 
-1. Discover supported files recursively and collect metadata.
-2. Calculate SHA-256 hashes; exact matches bypass expensive similarity work.
-3. Generate cheap image or document fingerprints.
-4. Compare only same-category candidates above configured thresholds.
-5. Create explainable candidate groups and recommend a copy using quality/size/recency signals.
-6. Expose progress through `GET /api/scans/:id/progress`.
+> *"Have I seen something almost the same as this before?"*
 
-The repository boundary is ready for MongoDB, embedding caches, and ANN retrieval such as FAISS. The lightweight build deliberately keeps model loading optional so a fresh install remains fast and local; a Sentence Transformers adapter can be added behind the similarity service for larger semantic corpora.
+For images, it compares **what the image looks like** (perceptual fingerprints). For documents, it compares **what the document says** (text embeddings + n-gram similarity). So even when:
 
-## Tech stack
-
-- Frontend: React, TypeScript, Vite, Tailwind CSS, shadcn-style primitives, Lucide, Framer Motion, React Router, TanStack Query.
-- Backend: Python, Flask, Flask Blueprints, Pydantic-ready service boundary, PyMongo-ready repository boundary.
-- Analysis: Pillow, imagehash, PyMuPDF, python-docx, python-pptx, scikit-learn/numpy-ready environment.
-- Storage: MongoDB metadata collections (`scans`, `files`, `duplicate_groups`, `similarity_results`, `user_actions`, `quarantine`, `settings`).
-
-## Installation
-
-### Frontend
-
-```bash
-npm install
-npm run dev
+```
+hello.docx  →  submission.pdf
 ```
 
-The Vite dev server runs on `http://localhost:5173` and proxies `/api` to Flask on port `5000`.
+...the system understands: *"These contain almost the same information."*
+
+### The 4-Stage Pipeline
+
+```
+Stage 1: SHA-256 Exact Match        → byte-for-byte identical files
+Stage 2: Perceptual Hash (pHash)    → visually similar images (resized, compressed, cropped)
+Stage 3: Text Embedding + N-Gram    → semantically similar documents (DOCX ↔ PDF ↔ TXT)
+Stage 4: Louvain Graph Clustering   → groups everything, picks the best master copy
+```
+
+---
+
+## 🖼️ Photo Example
+
+Given:
+```
+Original.jpg      5 MB   ← full resolution, original EXIF
+WhatsApp.jpg    500 KB   ← WhatsApp compression
+Small.jpg       200 KB   ← resized thumbnail
+```
+
+DedupeIQ groups them and says:
+
+```
+📸 Duplicate Group — "Summer Trip Photo"
+Similarity: 97%
+
+★ KEEP   Original.jpg     (5 MB)   — Highest resolution, original metadata
+  REMOVE WhatsApp.jpg   (500 KB)   — WhatsApp compressed copy
+  REMOVE Small.jpg      (200 KB)   — Resized thumbnail
+
+💾 Recoverable: 700 KB
+```
+
+---
+
+## 📄 Document Example
+
+Given:
+```
+assignment.docx
+assignment_final.docx
+assignment_final2.docx
+assignment_submission.pdf
+```
+
+DedupeIQ finds the version chain:
+
+```
+assignment.docx  →  assignment_final.docx  →  assignment_final2.docx  →  assignment_submission.pdf
+     v1                   v2                         v3                        PDF export
+
+★ KEEP: assignment_final2.docx
+  WHY:  Most content, newest changes, all info from earlier drafts preserved
+```
+
+---
+
+## ✨ Key Features
+
+| Feature | What it does |
+|---|---|
+| **Perceptual Image Hashing** | pHash + dHash detect visually similar photos even after resize, crop, or WhatsApp compression |
+| **Cross-Format Document NLP** | Compares DOCX, PDF, TXT, Markdown regardless of file format |
+| **Louvain Graph Communities** | Groups files into duplicate clusters using graph theory |
+| **Master Copy Recommendation** | Explains *why* one file is better (quality, size, recency, content coverage) |
+| **File Version Lineage** | Shows the chain: v1 → v2 → final → PDF export |
+| **Safe Quarantine** | Files are *never* deleted automatically — moved to a 30-day soft staging area |
+| **One-Click Restore** | Any quarantined file can be restored instantly |
+| **Per-User Workspaces** | Each account has isolated scan history, groups, and quarantine |
+| **Real-Time Progress** | Live scan progress with 4-stage pipeline status |
+
+---
+
+## 🖥️ Tech Stack
 
 ### Backend
+- **Python / Flask** — REST API server
+- **MongoDB** — stores scan records, duplicate groups, quarantine entries
+- **imagehash** — perceptual image fingerprinting (pHash, dHash, wHash)
+- **python-docx / pdfminer** — document text extraction
+- **scikit-learn / networkx** — cosine similarity + Louvain graph clustering
+- **Celery / threading** — async background scan workers
 
-Create a Python 3.11+ environment, then:
+### Frontend
+- **React 18 + TypeScript** — component architecture
+- **Vite** — build tooling
+- **TailwindCSS** — utility-first styling
+- **Framer Motion** — animations and transitions
+- **TanStack Query** — server state management and caching
+- **Recharts** — storage breakdown visualizations
+- **Lucide React** — icons
 
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- MongoDB (local or Atlas)
+
+### Backend Setup
 ```bash
 cd backend
-python -m venv .venv
-\.venv\Scripts\activate       # Windows
-source .venv/bin/activate      # macOS/Linux
 pip install -r requirements.txt
-python run.py
+cp .env.example .env          # add your MONGO_URI
+python run.py                 # starts on http://localhost:5000
 ```
 
-MongoDB is optional for the current development fallback. Set `MONGO_URI` and `MONGO_DB` when wiring the production `MongoStore` repository.
-
-## Environment variables
-
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `MONGO_URI` | `mongodb://localhost:27017` | MongoDB connection string |
-| `MONGO_DB` | `dedupeiq` | Metadata database name |
-| `DEDUPEIQ_DATA_DIR` | `.dedupeiq` | Temporary upload/quarantine metadata directory |
-| `MAX_FILE_SIZE` | `2147483648` | Per-file safety limit |
-| `IMAGE_THRESHOLD` | `0.85` | Minimum image candidate score |
-| `DOCUMENT_THRESHOLD` | `0.80` | Minimum document candidate score |
-
-## Production build
-
+### Frontend Setup
 ```bash
-npm run build
+npm install
+npm run dev                   # starts on http://localhost:5173
 ```
 
-Serve `dist/` from a static host and put Flask behind a same-origin reverse proxy. For a desktop wrapper, pass a validated server-side folder path to `POST /api/scans` with `{ "root_path": "..." }`; the browser upload path is intended for web-safe folder selection.
+### Demo Accounts
+| Email | Password | Role |
+|---|---|---|
+| `alex.morgan@workspace.io` | `password123` | Admin (full dataset) |
+| `jordan.lee@storage.dev` | `analyst2026` | Analyst (full dataset) |
+| Any new email | Any password | Fresh isolated workspace |
 
-## Privacy and safety model
+---
 
-Analysis is designed to run locally. Metadata is stored rather than large file contents. The server validates scan roots and file records before filesystem operations. Review actions only mark files for quarantine; permanent deletion requires a separate explicit action. Corrupt or unsupported files are recorded as scan issues and do not abort a scan.
+## 📁 Project Structure
 
-## Limitations
-
-- The development store is process-local until the MongoDB repository is connected.
-- Browser security prevents a web page from passing a user’s absolute local folder path; browser scans upload selected files to the local Flask process for analysis.
-- Semantic embeddings and FAISS retrieval are intentionally adapter points rather than mandatory startup dependencies in this first production slice.
-- Video/audio matching, OCR, NAS scanning, and multi-user accounts are future extensions.
-
-## Tests
-
-```bash
-cd backend
-pytest
+```
+FINDATHON/
+├── backend/
+│   ├── app/
+│   │   ├── routes/       # Flask API endpoints
+│   │   ├── services/     # hashing, scanning, similarity, quarantine
+│   │   ├── repositories/ # MongoDB store layer
+│   │   └── models.py     # data models
+│   └── run.py
+├── src/
+│   ├── pages/            # React page components
+│   ├── components/       # shared UI + modals
+│   ├── lib/              # API client, utils
+│   ├── context/          # auth context
+│   └── types.ts          # TypeScript interfaces
+└── README.md
 ```
 
-The suite starts with deterministic hashing and core similarity confidence tests, and is structured to grow with scanner, safe filesystem, clustering, and API coverage.
+---
+
+## 🔒 Privacy & Safety
+
+- **100% on-device** — no files leave your machine, ever
+- **No telemetry** — zero analytics or tracking
+- **Non-destructive** — quarantine is a soft staging area, never a permanent delete
+- **Encrypted metadata** — file hashes and embeddings stored locally
+
+---
+
+## 💡 The One-Line Summary
+
+> **Input:** messy folder → **Brain:** intelligent multi-modal file comparison → **Output:** grouped duplicates + best copy recommendation + storage freed
+
+---
+
+*Built for FINDATHON Hackathon — because your storage deserves better.*

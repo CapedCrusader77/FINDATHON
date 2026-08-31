@@ -159,6 +159,74 @@ export default function ReviewGroupPage() {
         </div>
       </div>
 
+      {/* Version Lineage Chain (for document groups) */}
+      {isDoc && group.files.length > 1 && (
+        <Card className="p-4 bg-[#0e1118] border-[#1e2230]">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 size={14} className="text-brand-400" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-brand-400">Version Chain Detected</span>
+          </div>
+          <p className="text-[11px] text-slate-400 mb-3">
+            These files are likely different versions of the same document. The system traced their evolution:
+          </p>
+          <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1">
+            {group.files.map((file, idx) => (
+              <React.Fragment key={file.id}>
+                <div className={`flex flex-col items-center rounded-xl border px-3 py-2 text-center min-w-[110px] ${
+                  file.isRecommended
+                    ? 'border-emerald-500/40 bg-emerald-950/20'
+                    : 'border-[#1e2230] bg-[#11141d]'
+                }`}>
+                  <FileText size={14} className={file.isRecommended ? 'text-emerald-400' : 'text-slate-500'} />
+                  <p className="mt-1 text-[10px] font-bold text-white truncate max-w-[100px]">{file.name}</p>
+                  <p className="text-[9px] text-slate-500 font-mono">{formatBytes(file.size)}</p>
+                  {file.isRecommended && (
+                    <span className="mt-1 rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[8px] font-bold text-emerald-300 border border-emerald-500/25">
+                      ★ KEEP
+                    </span>
+                  )}
+                </div>
+                {idx < group.files.length - 1 && (
+                  <div className="flex flex-col items-center gap-0.5 shrink-0">
+                    <div className="h-0.5 w-6 bg-gradient-to-r from-slate-700 to-slate-600 rounded" />
+                    <span className="text-[8px] text-slate-600 font-mono">edit</span>
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Image cluster summary (for photo groups) */}
+      {isImage && group.files.length > 1 && (
+        <Card className="p-4 bg-[#0e1118] border-[#1e2230]">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 size={14} className="text-purple-400" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400">Visual Duplicate Cluster</span>
+          </div>
+          <p className="text-[11px] text-slate-400 mb-3">
+            All files below contain visually identical content. The system compared perceptual fingerprints (pHash) — not filenames — to detect these as the same image in different forms:
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {group.files.map(file => (
+              <div key={file.id} className={`rounded-xl border px-3 py-2 text-xs ${
+                file.isRecommended ? 'border-purple-500/40 bg-purple-950/20' : 'border-[#1e2230] bg-[#11141d]'
+              }`}>
+                <p className="font-bold text-white">{file.name}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">{file.dimensions || formatBytes(file.size)}</p>
+                <p className="text-[9px] mt-1">
+                  {file.isRecommended
+                    ? <span className="text-purple-300">★ Best quality</span>
+                    : <span className="text-slate-500">Compressed copy</span>
+                  }
+                </p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {/* Main Review Grid */}
       <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
         {/* Left Column: Files Table */}
