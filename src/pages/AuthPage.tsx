@@ -137,35 +137,35 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
   const engineStages = [
     {
       step: '01',
-      title: 'Local File Ingestion',
+      title: 'Local Ingestion',
       subtitle: 'Zero Cloud Uploads',
       icon: HardDrive,
       color: 'from-blue-500 to-cyan-500',
-      details: 'DedupeIQ recursively scans local directories without streaming files to third-party servers. Cryptographic SHA-256 fingerprints are generated directly on your CPU/GPU.'
+      details: 'Recursive local scanning with fast SHA-256 byte hashing on your CPU.'
     },
     {
       step: '02',
-      title: 'Perceptual Feature Extraction',
-      subtitle: 'dHash, pHash & NLP',
+      title: 'Feature Extraction',
+      subtitle: 'pHash & NLP Vectors',
       icon: Cpu,
       color: 'from-purple-500 to-indigo-500',
-      details: 'Images are evaluated using Discrete Cosine Transform (DCT) frequency analysis. Documents are normalized and vectorized with n-gram overlap algorithms.'
+      details: 'DCT perceptual image hashing and tokenized document n-gram diffs.'
     },
     {
       step: '03',
-      title: 'Louvain Graph Partitioning',
-      subtitle: 'Modular Network Clusters',
+      title: 'Graph Clustering',
+      subtitle: 'Louvain Modularity',
       icon: Layers,
       color: 'from-brand-500 to-amber-500',
-      details: 'Pairwise file distances form a weighted topological similarity graph. The Louvain modularity algorithm ($Q=0.88$) automatically groups related files into distinct communities.'
+      details: 'Weighted topological graph partitioning ($Q=0.88$) into community clusters.'
     },
     {
       step: '04',
-      title: 'Master Recommendation & Quarantine',
-      subtitle: 'Non-Destructive 30-Day Bin',
+      title: 'Master Selection',
+      subtitle: '30-Day Safe Bin',
       icon: ShieldCheck,
       color: 'from-emerald-500 to-teal-500',
-      details: 'Our decision engine evaluates resolution, bitrate, page completeness, and modification dates to recommend the optimal master file. Redundant copies are safely isolated.'
+      details: 'Automated resolution & quality ranking with non-destructive quarantine.'
     }
   ]
 
@@ -552,19 +552,19 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
         /* ── Main Split-Screen Asymmetric Area ── */
         <main className="relative z-10 flex-1 grid lg:grid-cols-[1.1fr_0.9fr] max-w-7xl w-full mx-auto p-6 sm:p-10 gap-10 items-center">
           {/* Left Column: Product Value & Workflow Narrative */}
-          <div className="hidden lg:flex flex-col justify-center space-y-7 pr-6">
+          <div className="hidden lg:flex flex-col justify-center space-y-6 pr-6">
             <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-3.5 py-1 text-xs font-semibold text-brand-300">
+              <div className="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-3.5 py-1 text-xs font-semibold text-brand-300 font-mono">
                 <Sparkles size={13} />
-                <span>Multi-Modal Intelligent Duplicate Workstation</span>
+                <span>Multi-Modal Duplicate Workstation</span>
               </div>
 
-              <h1 className="text-4xl xl:text-5xl font-black font-display text-white tracking-tight leading-[1.15]">
-                Intelligent duplicate discovery & <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-400 to-indigo-400">safe storage cleanup</span>.
+              <h1 className="text-4xl xl:text-5xl font-extrabold font-display text-white tracking-tight leading-[1.15]">
+                Intelligent duplicate discovery & <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-400 to-indigo-400">safe cleanup</span>.
               </h1>
 
               <p className="text-sm text-slate-400 leading-relaxed max-w-xl">
-                Unlike traditional tools that only compare exact filenames or byte hashes, DedupeIQ inspects image pixels, perceptual frequencies, and cross-format document texts to group versions and recommend the safest master copy to retain.
+                Identifies visual image derivatives, document revisions, and exact duplicates directly on your device.
               </p>
             </div>
 
@@ -572,41 +572,41 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
             <div className="space-y-2 pt-2 border-t border-[#1d202e]">
               <div className="flex items-center justify-between">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-                  The DedupeIQ Intelligence Workflow
+                  6-Stage Intelligence Pipeline
                 </p>
                 <button
                   type="button"
                   onClick={() => setActiveView('about')}
-                  className="text-[11px] font-bold text-brand-400 hover:underline flex items-center gap-1"
+                  className="text-[11px] font-bold text-brand-400 hover:underline flex items-center gap-1 cursor-pointer"
                 >
-                  <span>Interactive Engine Tour</span>
+                  <span>Engine Tour</span>
                   <ArrowRight size={12} />
                 </button>
               </div>
               <div className="grid grid-cols-3 gap-2 text-xs">
                 {[
-                  { step: '01 SCAN', desc: 'Local folder discovery' },
-                  { step: '02 DETECT', desc: 'pHash & NLP vector diff' },
-                  { step: '03 EXPLAIN', desc: 'Signal & reason breakdown' },
-                  { step: '04 RECOMMEND', desc: 'Optimal master copy pick' },
-                  { step: '05 REVIEW', desc: 'Side-by-side verification' },
-                  { step: '06 QUARANTINE', desc: '30-day soft safe bin' }
+                  { step: '01 SCAN', desc: 'Folder ingest' },
+                  { step: '02 DETECT', desc: 'pHash & vectors' },
+                  { step: '03 EXPLAIN', desc: 'Signal diffs' },
+                  { step: '04 RECOMMEND', desc: 'Master pick' },
+                  { step: '05 REVIEW', desc: 'Side-by-side' },
+                  { step: '06 QUARANTINE', desc: '30-day bin' }
                 ].map(w => (
                   <div key={w.step} className="rounded-xl border border-[#1f2333] bg-[#11131c] p-2.5 space-y-0.5">
                     <p className="font-mono text-[10px] font-bold text-brand-400">{w.step}</p>
-                    <p className="text-[10px] text-slate-400 leading-tight">{w.desc}</p>
+                    <p className="text-[10px] text-slate-400 leading-tight font-medium">{w.desc}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* On-Device Privacy Guarantee Card */}
-            <div className="rounded-2xl border border-emerald-500/25 bg-emerald-950/15 p-4 flex items-start gap-3">
-              <ShieldCheck size={18} className="text-emerald-400 shrink-0 mt-0.5" />
+            <div className="rounded-2xl border border-emerald-500/25 bg-emerald-950/15 p-3.5 flex items-center gap-3">
+              <ShieldCheck size={18} className="text-emerald-400 shrink-0" />
               <div className="text-xs space-y-0.5">
-                <p className="font-bold text-emerald-300">100% Local-First Processing Guarantee</p>
+                <p className="font-bold text-emerald-300">100% Local-First Engine</p>
                 <p className="text-emerald-200/80 leading-relaxed text-[11px]">
-                  Zero files, embeddings, or metadata leave your local machine. All analysis runs directly on your hardware.
+                  Zero cloud uploads. All analysis runs directly on your CPU/GPU.
                 </p>
               </div>
             </div>

@@ -44,10 +44,10 @@ export default function ScanPage() {
   const [logs, setLogs] = useState<FileLog[]>([])
 
   const stages = [
-    { key: 'discovering', label: 'File Discovery', icon: FolderOpen, desc: 'Crawling directory trees' },
-    { key: 'hashing', label: 'SHA-256 Pass', icon: Cpu, desc: 'Cryptographic exact matches' },
-    { key: 'analyzing', label: 'Vector Extraction', icon: Sparkles, desc: 'Perceptual & NLP embeddings' },
-    { key: 'clustering', label: 'Louvain Graph', icon: Layers, desc: 'Master recommendation' }
+    { key: 'discovering', label: 'File Discovery', icon: FolderOpen, desc: 'Directory crawl' },
+    { key: 'hashing', label: 'SHA-256 Pass', icon: Cpu, desc: 'Binary exact match' },
+    { key: 'analyzing', label: 'Vector Extraction', icon: Sparkles, desc: 'pHash & NLP vectors' },
+    { key: 'clustering', label: 'Louvain Graph', icon: Layers, desc: 'Community clustering' }
   ]
 
   const mutation = useMutation({
@@ -369,9 +369,9 @@ export default function ScanPage() {
                   <Check size={18} strokeWidth={3} />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Analysis Complete</h4>
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">Analysis Complete</h4>
                   <p className="text-xs text-emerald-200/80 mt-0.5">
-                    Duplicate clusters and master recommendations are ready to review.
+                    Duplicate groups and master recommendations ready to review.
                   </p>
                 </div>
               </div>

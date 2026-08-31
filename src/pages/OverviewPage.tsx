@@ -137,17 +137,17 @@ export default function OverviewPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#242830] pb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex items-center gap-2 mb-1">
             <span className="flex h-2 w-2 rounded-full bg-emerald-400" />
             <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 font-mono">
               Live Storage Index
             </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
-            Storage Intelligence & Duplicate Files
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-display">
+            Duplicate Storage Intelligence
           </h2>
-          <p className="mt-1 max-w-xl text-xs text-slate-400 leading-relaxed">
-            Real-time duplicate detection, master copy recommendations, and recoverable storage metrics.
+          <p className="mt-1 max-w-xl text-xs text-slate-400">
+            Real-time duplicate detection, master copy selection, and space recovery.
           </p>
         </div>
 
@@ -314,10 +314,10 @@ export default function OverviewPage() {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { count: exactCount.toString(), label: 'Exact duplicates', icon: CopyIcon, desc: 'Identical SHA-256 byte match', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
-            { count: nearImgCount.toString(), label: 'Perceptual images', icon: ImageIcon, desc: 'pHash & downscaled derivatives', color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
-            { count: docCount.toString(), label: 'Document versions', icon: FileCheck, desc: 'Text n-gram revisions', color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
-            { count: uniqueMasterCount.toString(), label: 'Protected master files', icon: ShieldCheck, desc: 'Recommended to keep', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' }
+            { count: exactCount.toString(), label: 'Exact duplicates', icon: CopyIcon, desc: 'SHA-256 binary match', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+            { count: nearImgCount.toString(), label: 'Perceptual images', icon: ImageIcon, desc: 'pHash & derivatives', color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
+            { count: docCount.toString(), label: 'Document versions', icon: FileCheck, desc: 'Text n-gram diffs', color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
+            { count: uniqueMasterCount.toString(), label: 'Protected masters', icon: ShieldCheck, desc: 'Optimal files to keep', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' }
           ].map(item => (
             <div
               key={item.label}
