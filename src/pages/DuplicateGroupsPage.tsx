@@ -257,8 +257,8 @@ function GroupRowCard({
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 {file.isRecommended ? (
-                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded bg-emerald-500 text-slate-950 font-bold text-[10px]" title="Recommended Master Copy">
-                    ★
+                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded bg-emerald-500 text-slate-950" title="Recommended Master Copy">
+                    <Star size={11} className="fill-slate-950 text-slate-950" />
                   </span>
                 ) : (
                   <span className="h-1.5 w-1.5 rounded-full bg-slate-600 shrink-0 ml-1.5" />

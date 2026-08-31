@@ -376,24 +376,24 @@ export default function ReviewGroupPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-[#242830]">
               {group.signals && group.signals.length > 0 ? (
                 group.signals.map((sig, i) => (
-                  <div key={i} className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center">
-                    <span className="text-emerald-400 font-bold text-xs">✓</span>
-                    <p className="text-[10px] text-slate-300 mt-0.5 truncate">{sig.label}</p>
-                    {sig.value && <p className="text-[9px] text-slate-500 font-mono truncate">{sig.value}</p>}
+                  <div key={i} className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center flex flex-col items-center justify-center">
+                    <Check size={13} className="text-emerald-400 mb-0.5" strokeWidth={2.5} />
+                    <p className="text-[10px] text-slate-300 mt-0.5 truncate w-full">{sig.label}</p>
+                    {sig.value && <p className="text-[9px] text-slate-500 font-mono truncate w-full">{sig.value}</p>}
                   </div>
                 ))
               ) : (
                 <>
-                  <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center">
-                    <span className="text-emerald-400 font-bold text-xs">✓</span>
+                  <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center flex flex-col items-center justify-center">
+                    <Check size={13} className="text-emerald-400 mb-0.5" strokeWidth={2.5} />
                     <p className="text-[10px] text-slate-300 mt-0.5">Content Similarity</p>
                   </div>
-                  <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center">
-                    <span className="text-emerald-400 font-bold text-xs">✓</span>
+                  <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center flex flex-col items-center justify-center">
+                    <Check size={13} className="text-emerald-400 mb-0.5" strokeWidth={2.5} />
                     <p className="text-[10px] text-slate-300 mt-0.5">Structure Match</p>
                   </div>
-                  <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center">
-                    <span className="text-emerald-400 font-bold text-xs">✓</span>
+                  <div className="rounded-lg border border-[#242830] bg-[#16181f] p-2.5 text-center flex flex-col items-center justify-center">
+                    <Check size={13} className="text-emerald-400 mb-0.5" strokeWidth={2.5} />
                     <p className="text-[10px] text-slate-300 mt-0.5">Candidate Copies</p>
                   </div>
                 </>
@@ -430,8 +430,9 @@ export default function ReviewGroupPage() {
               <p className="text-xs font-bold text-white font-mono truncate max-w-[220px]">
                 {masterFile.name}
               </p>
-              <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400">
-                ★ RECOMMENDED MASTER
+              <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400 inline-flex items-center gap-1">
+                <Star size={10} className="fill-emerald-400 text-emerald-400" />
+                <span>RECOMMENDED MASTER</span>
               </span>
             </div>
 
@@ -521,8 +522,9 @@ export default function ReviewGroupPage() {
                   <div className="flex items-center gap-2">
                     <p className="text-xs font-bold text-white truncate">{file.name}</p>
                     {file.isRecommended && (
-                      <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-[9px] font-bold text-emerald-300 border border-emerald-500/30">
-                        ★ RECOMMENDED MASTER
+                      <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-[9px] font-bold text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1">
+                        <Star size={9} className="fill-emerald-400 text-emerald-400" />
+                        <span>RECOMMENDED MASTER</span>
                       </span>
                     )}
                   </div>

@@ -249,8 +249,9 @@ export default function OverviewPage() {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
             <div className="space-y-2 max-w-2xl">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full bg-brand-500/15 border border-brand-500/30 text-[10px] font-bold text-brand-300 uppercase tracking-wider font-mono">
-                  ★ Highest Priority Cleanup
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-500/15 border border-brand-500/30 text-[10px] font-bold text-brand-300 uppercase tracking-wider font-mono">
+                  <Star size={11} className="fill-brand-400 text-brand-400" />
+                  <span>Highest Priority Cleanup</span>
                 </span>
                 <span className="text-xs font-mono font-bold text-brand-400">
                   {topPriorityGroup.similarity}% similarity
@@ -379,8 +380,9 @@ export default function OverviewPage() {
                       <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-400">
                         <span>{group.files.length} candidate files</span>
                         <span>·</span>
-                        <span className="text-emerald-400 truncate font-mono">
-                          ★ Master: {masterFile?.name}
+                        <span className="text-emerald-400 truncate font-mono inline-flex items-center gap-1">
+                          <Star size={10} className="fill-emerald-400 text-emerald-400" />
+                          <span>Master: {masterFile?.name}</span>
                         </span>
                       </div>
                     </div>

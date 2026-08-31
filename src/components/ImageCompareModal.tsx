@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Sliders, Columns, Eye, ZoomIn, ZoomOut, CheckCircle2, ShieldCheck } from 'lucide-react'
+import { X, Sliders, Columns, Eye, ZoomIn, ZoomOut, CheckCircle2, ShieldCheck, Star } from 'lucide-react'
 import { DuplicateGroup, FileRecord } from '../types'
 import { formatBytes } from '../lib/utils'
 import { Badge, Button } from './ui'
@@ -183,8 +183,9 @@ export default function ImageCompareModal({ group, isOpen, onClose, onSelectKeep
                       alt={masterFile.name}
                       className="absolute inset-0 h-full w-full object-contain"
                     />
-                    <div className="absolute left-3 top-3 rounded-md bg-black/80 px-2 py-0.5 text-[10px] font-semibold text-emerald-300 backdrop-blur-md border border-emerald-500/30">
-                      ★ Master Original ({masterFile.dimensions || '4K'})
+                    <div className="absolute left-3 top-3 rounded-md bg-black/80 px-2 py-0.5 text-[10px] font-semibold text-emerald-300 backdrop-blur-md border border-emerald-500/30 inline-flex items-center gap-1">
+                      <Star size={10} className="fill-emerald-400 text-emerald-400" />
+                      <span>Master Original ({masterFile.dimensions || '4K'})</span>
                     </div>
                   </div>
 
@@ -207,8 +208,9 @@ export default function ImageCompareModal({ group, isOpen, onClose, onSelectKeep
                 >
                   <div className="relative overflow-hidden rounded-xl border border-emerald-500/30 bg-[#11141d]">
                     <img src={masterImg} alt={masterFile.name} className="h-full w-full object-contain" />
-                    <div className="absolute left-2.5 top-2.5 rounded-md bg-emerald-950/90 px-2 py-0.5 text-[10px] font-semibold text-emerald-300 border border-emerald-500/30">
-                      ★ Master: {masterFile.name}
+                    <div className="absolute left-2.5 top-2.5 rounded-md bg-emerald-950/90 px-2 py-0.5 text-[10px] font-semibold text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1">
+                      <Star size={10} className="fill-emerald-400 text-emerald-400" />
+                      <span>Master: {masterFile.name}</span>
                     </div>
                   </div>
                   <div className="relative overflow-hidden rounded-xl border border-[#222634] bg-[#11141d]">

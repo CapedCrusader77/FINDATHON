@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { GitCompare, Plus, Minus, Check, Copy, Search, ShieldCheck, X } from 'lucide-react'
+import { GitCompare, Plus, Minus, Check, Copy, Search, ShieldCheck, X, Star } from 'lucide-react'
 import { DuplicateGroup } from '../types'
 import { Badge, Button } from './ui'
 
@@ -198,7 +198,10 @@ export default function DocumentDiffViewer({ group, isOpen, onClose }: DocumentD
                 {/* Master / File B */}
                 <div className="rounded-lg border border-emerald-500/25 bg-[#11141d] p-3">
                   <div className="mb-2.5 flex items-center justify-between border-b border-emerald-500/20 pb-2 text-xs font-semibold text-emerald-300">
-                    <span className="truncate">★ Master: {fileB}</span>
+                    <span className="truncate inline-flex items-center gap-1">
+                      <Star size={10} className="fill-emerald-400 text-emerald-400" />
+                      <span>Master: {fileB}</span>
+                    </span>
                     <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] text-emerald-300 font-bold">Master</span>
                   </div>
                   <div className="space-y-1 font-mono text-[11px]">

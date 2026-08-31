@@ -16,7 +16,8 @@ import {
   HardDrive,
   FileText,
   Terminal,
-  RefreshCw
+  RefreshCw,
+  Check
 } from 'lucide-react'
 import { startScan, fetchScanProgress } from '../lib/api'
 import { formatBytes } from '../lib/utils'
@@ -364,8 +365,8 @@ export default function ScanPage() {
           {effectivePhase === 'complete' && (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-4">
               <div className="flex items-center gap-3">
-                <div className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-500 text-slate-950 font-bold text-sm">
-                  ✓
+                <div className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-500 text-slate-950">
+                  <Check size={18} strokeWidth={3} />
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-white uppercase tracking-wider">Analysis Complete</h4>

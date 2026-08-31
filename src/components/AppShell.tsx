@@ -21,7 +21,8 @@ import {
   HardDrive,
   Menu,
   X,
-  User as UserIcon
+  User as UserIcon,
+  Lock
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { fetchGroups, fetchDashboard } from '../lib/api'
@@ -124,8 +125,9 @@ export default function AppShell({ children }: AppShellProps) {
                 <span className="font-display font-bold text-[0.92rem] tracking-tight text-white">
                   Dedupe<span className="text-brand-400">IQ</span>
                 </span>
-                <span className="ml-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[8.5px] font-mono text-emerald-300">
-                  🔒 Processed Locally
+                <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[8.5px] font-mono text-emerald-300">
+                  <Lock size={9} className="text-emerald-400" />
+                  <span>Processed Locally</span>
                 </span>
               </div>
             )}

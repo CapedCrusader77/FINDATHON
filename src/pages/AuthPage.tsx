@@ -66,7 +66,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
       original: {
         name: 'IMG_8421.JPG',
         spec: '4032 × 3024 · 5.8 MB',
-        badge: '★ Recommended Master',
+        badge: 'Recommended Master',
         desc: 'Camera original with full dynamic range and EXIF color depth.'
       },
       copy: {
@@ -91,7 +91,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
       original: {
         name: 'Project_Proposal_Final_v2.pdf',
         spec: '28 Pages · 4.2 MB',
-        badge: '★ Recommended Master',
+        badge: 'Recommended Master',
         desc: 'Complete compiled document with executive appendices and signatures.'
       },
       copy: {
@@ -116,7 +116,7 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
       original: {
         name: 'system_architecture_diagram.png',
         spec: '3840 × 2160 · 18.4 MB',
-        badge: '★ Active Source File',
+        badge: 'Active Source File',
         desc: 'Original asset stored in /Projects/Architecture directory.'
       },
       copy: {
@@ -275,8 +275,9 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
             <span className="font-display font-bold text-xl tracking-tight text-white">
               Dedupe<span className="text-brand-400">IQ</span>
             </span>
-            <span className="ml-2.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[9.5px] font-mono text-emerald-300 hidden sm:inline-block">
-              🔒 On-Device Intelligence
+            <span className="ml-2.5 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[9.5px] font-mono text-emerald-300 hidden sm:inline-flex">
+              <Lock size={10} className="text-emerald-400" />
+              <span>On-Device Intelligence</span>
             </span>
           </div>
         </div>
@@ -325,11 +326,11 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
         <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto p-6 sm:p-10 space-y-10">
           {/* Header Banner */}
           <div className="text-center max-w-3xl mx-auto space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-4 py-1.5 text-xs font-bold text-brand-300">
+            <div className="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-4 py-1.5 text-xs font-bold text-brand-300 font-mono tracking-wide">
               <Sparkles size={14} />
               <span>How DedupeIQ Works · Interactive Engine Showcase</span>
             </div>
-            <h1 className="text-3xl sm:text-5xl font-black font-display text-white tracking-tight">
+            <h1 className="text-3xl sm:text-5xl font-extrabold font-display text-white tracking-tight leading-tight">
               Not just matching filenames. <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-indigo-300 to-cyan-400">
                 Understanding what’s inside your files.
@@ -378,8 +379,9 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
               {/* ORIGINAL MASTER CARD */}
               <div className="rounded-2xl border-2 border-emerald-500/40 bg-[#0c1813] p-5 flex flex-col justify-between space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
-                    {currentComparison.original.badge}
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
+                    <Star size={11} className="fill-emerald-400 text-emerald-400" />
+                    <span>{currentComparison.original.badge}</span>
                   </span>
                   <span className="font-mono text-xs font-bold text-emerald-400">100% Quality</span>
                 </div>
@@ -465,8 +467,8 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated?: () => 
               <div className="grid sm:grid-cols-3 gap-2 text-xs">
                 {currentComparison.whyMatch.map((reason, i) => (
                   <div key={i} className="flex items-center gap-2 rounded-xl bg-[#141622] p-2.5 border border-[#222636]">
-                    <span className="text-emerald-400 font-bold">✓</span>
-                    <span className="text-slate-300 text-[11px]">{reason}</span>
+                    <Check size={12} className="text-emerald-400 shrink-0" strokeWidth={2.5} />
+                    <span className="text-slate-300 text-[11px] font-medium">{reason}</span>
                   </div>
                 ))}
               </div>
