@@ -15,130 +15,161 @@
 
   body {
     margin: 0;
-    min-width: 320px;
     background-color: #08090d;
     color: #f8fafc;
     min-height: 100vh;
     overflow-x: hidden;
   }
 
-  /* macOS Slim Translucent Scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.18);
-    border-radius: 9999px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.32);
-  }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
 }
 
-/* Apple Liquid Acrylic Glassmorphism */
-.macos-glass {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+/* ─── Glass Layers ─── */
+.glass {
+  background: rgba(255,255,255,0.042);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.glass-heavy {
+  background: rgba(14,18,28,0.72);
+  backdrop-filter: blur(42px) saturate(200%);
+  -webkit-backdrop-filter: blur(42px) saturate(200%);
+  border: 1px solid rgba(255,255,255,0.13);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+.glass-dock {
+  background: rgba(18,24,42,0.62);
+  backdrop-filter: blur(38px) saturate(210%);
+  -webkit-backdrop-filter: blur(38px) saturate(210%);
+  border: 1px solid rgba(255,255,255,0.17);
+  box-shadow: 0 20px 48px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.28);
 }
 
-.macos-glass-heavy {
-  background: rgba(14, 18, 28, 0.72);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.65), inset 0 1px 0 0 rgba(255, 255, 255, 0.18);
-}
-
-.macos-dock-glass {
-  background: rgba(22, 27, 44, 0.65);
-  backdrop-filter: blur(35px);
-  -webkit-backdrop-filter: blur(35px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 20px 45px -8px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
-}
-
-/* Fluid Rainbow Mesh Backdrop */
+/* ─── Fluid Rainbow Mesh Background ─── */
 .rainbow-mesh-bg {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 0;
+  position: fixed; inset: 0;
+  pointer-events: none; overflow: hidden; z-index: 0;
 }
-
 .mesh-blob {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(95px);
-  opacity: 0.28;
-  mix-blend-mode: screen;
+  position: absolute; border-radius: 9999px;
+  filter: blur(105px); opacity: 0.22; mix-blend-mode: screen;
+  will-change: transform;
 }
-
 .blob-1 {
-  top: -10%;
-  left: 15%;
-  width: 55vw;
-  height: 55vw;
-  background: radial-gradient(circle, #6366f1 0%, #a855f7 70%, transparent 100%);
-  animation: mesh 22s ease-in-out infinite alternate;
+  top: -10%; left: 10%;
+  width: 60vw; height: 60vw;
+  background: radial-gradient(circle, #6366f1 0%, #a855f7 65%, transparent 100%);
+  animation: meshFloat 20s ease-in-out infinite alternate;
 }
-
 .blob-2 {
-  bottom: -15%;
-  right: 10%;
-  width: 60vw;
-  height: 60vw;
+  bottom: -18%; right: 5%;
+  width: 65vw; height: 65vw;
   background: radial-gradient(circle, #ec4899 0%, #f43f5e 50%, transparent 100%);
-  animation: mesh 26s ease-in-out infinite alternate-reverse;
+  animation: meshFloat 26s ease-in-out infinite alternate-reverse;
 }
-
 .blob-3 {
-  top: 35%;
-  left: 50%;
-  width: 45vw;
-  height: 45vw;
+  top: 30%; left: 48%;
+  width: 48vw; height: 48vw;
   background: radial-gradient(circle, #06b6d4 0%, #3b82f6 60%, transparent 100%);
-  animation: mesh 19s ease-in-out infinite alternate;
+  animation: meshFloat 18s ease-in-out infinite alternate;
 }
-
 .blob-4 {
-  top: 60%;
-  left: 5%;
-  width: 40vw;
-  height: 40vw;
+  top: 55%; left: 3%;
+  width: 42vw; height: 42vw;
   background: radial-gradient(circle, #f59e0b 0%, #10b981 60%, transparent 100%);
-  animation: mesh 24s ease-in-out infinite alternate-reverse;
+  animation: meshFloat 23s ease-in-out infinite alternate-reverse;
+}
+@keyframes meshFloat {
+  0%   { transform: translate(0px, 0px) scale(1) rotate(0deg); }
+  33%  { transform: translate(38px,-28px) scale(1.12) rotate(12deg); }
+  66%  { transform: translate(-22px, 32px) scale(0.94) rotate(-8deg); }
+  100% { transform: translate(25px, -20px) scale(1.07) rotate(18deg); }
 }
 
-@keyframes mesh {
-  0% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
-  50% { transform: translate(45px, -35px) scale(1.15) rotate(15deg); }
-  100% { transform: translate(-35px, 40px) scale(0.92) rotate(-15deg); }
+/* ─── macOS Traffic Lights (both naming conventions supported) ─── */
+.tl-close, .traffic-light-close    { background: #ff5f56; border: 1px solid rgba(0,0,0,0.15); }
+.tl-minimize, .traffic-light-minimize { background: #ffbd2e; border: 1px solid rgba(0,0,0,0.15); }
+.tl-expand, .traffic-light-expand   { background: #27c93f; border: 1px solid rgba(0,0,0,0.15); }
+
+/* ─── Shimmer Loading Animation ─── */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.8s infinite linear;
 }
 
-/* macOS Window Traffic Lights */
-.traffic-light-close {
-  background-color: #ff5f56;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+/* ─── Glow Button Effects ─── */
+.glow-blue {
+  box-shadow: 0 0 22px -4px rgba(59,130,246,0.55), 0 0 8px -2px rgba(99,102,241,0.4);
 }
-.traffic-light-minimize {
-  background-color: #ffbd2e;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+.glow-emerald { box-shadow: 0 0 22px -4px rgba(16,185,129,0.55); }
+.glow-purple  { box-shadow: 0 0 22px -4px rgba(168,85,247,0.55); }
+
+/* ─── Dock Icon Hover Magnification ─── */
+.dock-icon:hover { transform: translateY(-6px) scale(1.22); }
+.dock-icon { transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+
+/* ─── Pulse Ping for Indicators ─── */
+@keyframes ping-soft {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:0.6; transform:scale(1.5); }
 }
-.traffic-light-expand {
-  background-color: #27c93f;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+.ping-soft { animation: ping-soft 2.2s cubic-bezier(0.4,0,0.6,1) infinite; }
+
+/* ─── Fade slide in from bottom ─── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade-up { animation: fadeUp 0.3s ease-out both; }
+
+/* ─── Radial gradient for metric cards ─── */
+.metric-card-glow::after {
+  content:''; position:absolute; inset:0;
+  border-radius:inherit; pointer-events:none;
+  background: radial-gradient(ellipse at top left, rgba(255,255,255,0.05) 0%, transparent 70%);
 }
 
+/* ─── Animated Progress Bar ─── */
+@keyframes progressPulse {
+  0%,100% { opacity:1; }
+  50%     { opacity:0.7; }
+}
+.progress-pulse { animation: progressPulse 1.6s ease-in-out infinite; }
+
+/* ─── Smooth skeleton shimmer ─── */
+.skeleton {
+  background: linear-gradient(110deg, rgba(255,255,255,0.02) 30%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.02) 70%);
+  background-size: 300% 100%;
+  animation: shimmer 1.6s infinite;
+}
+
+/* ─── Counter animation class (used with JS) ─── */
+.counting { transition: all 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+
+/* ─── Scroll snap for feature carousel ─── */
+.snap-x-mandatory { scroll-snap-type: x mandatory; }
+.snap-start       { scroll-snap-align: start; }
+
+/* ─── Auth Input Focus Glow ─── */
+.input-glow:focus {
+  outline: none;
+  border-color: rgba(99,102,241,0.7);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.18), 0 0 18px rgba(59,130,246,0.18);
+}
+
+/* ─── Reduce motion ─── */
 @media (prefers-reduced-motion: reduce) {
-  .mesh-blob {
+  .mesh-blob, .shimmer, .skeleton, .ping-soft, .progress-pulse {
     animation: none !important;
   }
 }
