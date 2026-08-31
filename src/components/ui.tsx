@@ -15,7 +15,7 @@ export function Button({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 disabled:pointer-events-none disabled:opacity-40 select-none active:scale-[0.98]',
+        'inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f19] disabled:pointer-events-none disabled:opacity-40 select-none active:scale-[0.98] hover:-translate-y-px',
         variant === 'default' &&
           'bg-indigo-600 text-white shadow-glow hover:bg-indigo-500 hover:shadow-indigo-500/25',
         variant === 'gradient' &&
@@ -82,7 +82,7 @@ export function Card({
   return (
     <div
       className={cn(
-        'rounded-2xl border border-white/10 bg-slate-900/60 backdrop-blur-xl shadow-card transition-all duration-200',
+        'rounded-2xl border border-white/10 bg-slate-900/60 backdrop-blur-xl shadow-card transition-all duration-200 hover:border-indigo-400/20 hover:shadow-panel',
         className
       )}
       {...props}

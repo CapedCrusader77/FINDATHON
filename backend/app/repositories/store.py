@@ -159,7 +159,7 @@ class MongoStore:
         ]
 
         return {
-            'isDemo': len(files) == 0,
+            'isDemo': False,
             'filesScanned': len(files),
             'duplicateFiles': len(duplicate_ids),
             'duplicateGroups': len(groups),
@@ -212,7 +212,7 @@ class MemoryStore:
                 breakdown[group.get('type', 'Other')] += 1
             duplicate_breakdown = [{'name': key, 'value': value, 'color': color} for key, value, color in [('Exact', breakdown['Exact'], '#3b82f6'), ('Near image', breakdown['Near image'], '#6366f1'), ('Near document', breakdown['Near document'], '#a855f7'), ('Semantic', breakdown['Semantic match'], '#10b981')]]
             return {
-                'isDemo': len(files) == 0,
+                'isDemo': False,
                 'filesScanned': len(files),
                 'duplicateFiles': len(duplicate_ids),
                 'duplicateGroups': len(groups),

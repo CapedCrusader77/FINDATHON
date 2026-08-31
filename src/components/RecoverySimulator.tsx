@@ -4,6 +4,7 @@ import { HardDrive, Zap, Sparkles, Sliders, CheckCircle2, ArrowRight, ShieldChec
 import { DashboardData } from '../types'
 import { formatBytes } from '../lib/utils'
 import { Card, SectionTitle, Button, Badge } from './ui'
+import { useToast } from './Toast'
 
 interface RecoverySimulatorProps {
   data: DashboardData
@@ -11,6 +12,7 @@ interface RecoverySimulatorProps {
 }
 
 export default function RecoverySimulator({ data, onApplyPolicy }: RecoverySimulatorProps) {
+  const { pushToast } = useToast()
   const [threshold, setThreshold] = useState<number>(90)
   const [activePreset, setActivePreset] = useState<'safe' | 'balanced' | 'aggressive'>('balanced')
 
@@ -160,7 +162,7 @@ export default function RecoverySimulator({ data, onApplyPolicy }: RecoverySimul
               className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white shadow-glow"
               onClick={() => {
                 if (onApplyPolicy) onApplyPolicy(threshold)
-                alert(`Applied threshold filter: ${threshold}%. Groups updated for one-click clean.`)
+                pushToast(`Threshold set to ${threshold}%. Candidate groups are ready for a one-click review.`, 'info')
               }}
             >
               <Sparkles size={14} /> Auto-Select Candidates ({threshold}%)

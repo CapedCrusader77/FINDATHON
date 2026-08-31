@@ -66,6 +66,7 @@ import MiniRecoveryChart from './components/MiniRecoveryChart'
 import ImageCompareModal from './components/ImageCompareModal'
 import DocumentDiffViewer from './components/DocumentDiffViewer'
 import RecoverySimulator from './components/RecoverySimulator'
+import { ToastProvider, useToast } from './components/Toast'
 
 const navItems = [
   { to: '/', label: 'Overview', icon: LayoutDashboard },
@@ -99,6 +100,7 @@ function AppShell() {
   const location = useLocation()
   const navigate = useNavigate()
   const { data: groups = [] } = useQuery<DuplicateGroup[]>({ queryKey: ['groups'], queryFn: fetchGroups })
+  const { data: dashboard } = useQuery<DashboardData>({ queryKey: ['dashboard'], queryFn: fetchDashboard })
 
   const pageTitle =
     location.pathname === '/'
@@ -114,6 +116,7 @@ function AppShell() {
         e.preventDefault()
         setSearchOpen(prev => !prev)
       }
+      if (e.key === 'Escape') setSearchOpen(false)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
@@ -132,103 +135,134 @@ function AppShell() {
       {/* Sidebar */}
       <aside
         className={`${
-          collapsed ? 'w-[78px]' : 'w-[260px]'
-        } ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        } fixed inset-y-0 left-0 z-40 flex flex-col border-r border-white/10 bg-[#0f172a]/95 backdrop-blur-2xl px-3.5 py-5 transition-all duration-300 shadow-2xl`}
+          collapsed ? 'w-20' : 'w-72'
+        } fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-white/10 bg-slate-950/80 backdrop-blur-2xl transition-all duration-300 lg:flex`}
       >
-        {/* Brand Logo */}
-        <div className={`mb-8 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-2`}>
+        {/* Brand */}
+        <div className="flex h-20 items-center justify-between border-b border-white/10 px-6">
           <Link to="/" className="flex items-center gap-3 group">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 text-white shadow-glow transition-transform group-hover:scale-105">
-              <Sparkles size={18} />
-            </span>
+            <div className="relative grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 p-0.5 shadow-glow">
+              <div className="grid h-full w-full place-items-center rounded-[14px] bg-slate-950">
+                <Sparkles size={20} className="text-indigo-400 group-hover:rotate-12 transition-transform" />
+              </div>
+            </div>
             {!collapsed && (
-              <div className="flex flex-col">
-                <span className="text-lg font-extrabold tracking-tight text-white font-display">
-                  Dedupe<span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">IQ</span>
+              <div>
+                <span className="font-display text-lg font-extrabold tracking-tight text-white block leading-none">
+                  Dedupe<span className="text-indigo-400">IQ</span>
                 </span>
-                <span className="text-[10px] text-slate-400 tracking-wider uppercase font-semibold">
-                  Multi-Modal Engine
+                <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold block mt-1">
+                  Local Duplicate AI
                 </span>
               </div>
             )}
           </Link>
-          {!collapsed && (
-            <button
-              className="text-slate-400 hover:text-white lg:hidden"
-              onClick={() => setMobileOpen(false)}
-            >
-              <X size={18} />
-            </button>
-          )}
+
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="rounded-xl border border-white/10 p-2 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          </button>
         </div>
 
         {/* Navigation Items */}
-        <div className="flex-1 space-y-7 overflow-y-auto pr-1">
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
           <div>
-            <p className={`mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ${collapsed ? 'text-center' : ''}`}>
-              {collapsed ? '·' : 'Workspace'}
-            </p>
-            {navItems.map(item => (
-              <SideLink key={item.to} {...item} collapsed={collapsed} />
-            ))}
-          </div>
-
-          <div>
-            <p className={`mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ${collapsed ? 'text-center' : ''}`}>
-              {collapsed ? '·' : 'Management'}
-            </p>
-            {utilityItems.map(item => (
-              <SideLink key={item.to} {...item} collapsed={collapsed} />
-            ))}
-          </div>
-        </div>
-
-        {/* Bottom Workspace / Privacy Pill */}
-        <div className={`border-t border-white/10 pt-4 ${collapsed ? 'flex flex-col items-center' : ''}`}>
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="hidden w-full items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium text-slate-400 hover:bg-white/10 hover:text-white lg:flex transition-colors"
-          >
-            {collapsed ? <PanelLeftOpen size={16} /> : <><PanelLeftClose size={16} /> <span>Collapse View</span></>}
-          </button>
-
-          <div className={`${collapsed ? 'mt-3 justify-center' : ''} flex items-center gap-3 px-2 pt-3`}>
-            <div className="grid h-8 w-8 place-items-center rounded-xl bg-indigo-500/20 text-xs font-bold text-indigo-300 border border-indigo-500/30">
-              <ShieldCheck size={16} className="text-emerald-400" />
-            </div>
             {!collapsed && (
-              <div className="min-w-0">
-                <p className="truncate text-xs font-semibold text-slate-200">Local Safe Mode</p>
-                <p className="truncate text-[10px] text-emerald-400 font-medium">Zero Cloud Uploads</p>
-              </div>
+              <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                Main Workspace
+              </p>
             )}
+            <nav className="space-y-1.5">
+              {navItems.map(item => {
+                const Icon = item.icon
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.to === '/'}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3.5 rounded-xl px-3.5 py-3 text-xs font-semibold transition-all ${
+                        isActive
+                          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow'
+                          : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'
+                      }`
+                    }
+                  >
+                    <Icon size={18} className="shrink-0" />
+                    {!collapsed && <span>{item.label}</span>}
+                  </NavLink>
+                )
+              })}
+            </nav>
+          </div>
+
+          <div>
+            {!collapsed && (
+              <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                Management
+              </p>
+            )}
+            <nav className="space-y-1.5">
+              {utilityItems.map(item => {
+                const Icon = item.icon
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3.5 rounded-xl px-3.5 py-3 text-xs font-semibold transition-all ${
+                        isActive
+                          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow'
+                          : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'
+                      }`
+                    }
+                  >
+                    <Icon size={18} className="shrink-0" />
+                    {!collapsed && <span>{item.label}</span>}
+                  </NavLink>
+                )
+              })}
+            </nav>
           </div>
         </div>
+
+        {/* Engine Status Bottom Card */}
+        {!collapsed && (
+          <div className="p-4">
+            <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 p-4 shadow-xl">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs font-bold text-white">Detection Engine</span>
+              </div>
+              <p className="mt-1.5 text-[11px] text-slate-400 leading-relaxed">
+                SHA-256 + Perceptual Hashes + Louvain Clusters
+              </p>
+              <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2.5 text-[10px] font-semibold text-slate-500">
+                <span>Memory Store & MongoDB</span>
+                <span className="text-emerald-400">Ready</span>
+              </div>
+            </div>
+          </div>
+        )}
       </aside>
 
-      {/* Main Area */}
-      <main className={`${collapsed ? 'lg:pl-[78px]' : 'lg:pl-[260px]'} min-h-screen transition-all duration-300`}>
+      {/* Main Layout Area */}
+      <div className={`${collapsed ? 'lg:pl-20' : 'lg:pl-72'} flex flex-col min-h-screen transition-all duration-300`}>
         {/* Sticky Header */}
-        <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between border-b border-white/10 bg-[#0b0f19]/80 px-6 backdrop-blur-xl sm:px-8">
+        <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-white/10 bg-slate-950/80 px-6 backdrop-blur-2xl">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setMobileOpen(true)}
-              className="rounded-xl p-2 text-slate-400 hover:bg-white/10 lg:hidden"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-slate-400 hover:bg-white/10 hover:text-white lg:hidden"
             >
               <Menu size={20} />
             </button>
-            <div>
-              <div className="flex items-center gap-2 text-[11px] font-medium text-slate-400">
-                <span>Personal Drive</span>
-                <span>/</span>
-                <span className="text-indigo-400 font-semibold">{pageTitle}</span>
-              </div>
-              <h1 className="text-lg font-bold tracking-tight text-white font-display">
-                {pageTitle}
-              </h1>
-            </div>
+            <h1 className="text-xl font-bold tracking-tight text-white font-display">
+              {pageTitle}
+            </h1>
           </div>
 
           <div className="flex items-center gap-3">
@@ -244,11 +278,13 @@ function AppShell() {
               </kbd>
             </button>
 
-            {/* Quick Stats Pill */}
-            <div className="hidden md:flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-950/30 px-3 py-1.5 text-xs text-emerald-300">
-              <HardDrive size={14} className="text-emerald-400" />
-              <span className="font-semibold">14.8 GB Reclaimable</span>
-            </div>
+            {/* Quick Stats Pill (Dynamic) */}
+            {dashboard && dashboard.recoverable > 0 && (
+              <div className="hidden md:flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-950/30 px-3 py-1.5 text-xs text-emerald-300">
+                <HardDrive size={14} className="text-emerald-400" />
+                <span className="font-semibold">{formatBytes(dashboard.recoverable)} Reclaimable</span>
+              </div>
+            )}
 
             {/* Quick Scan CTA */}
             <Button size="sm" onClick={() => navigate('/scan')} className="bg-indigo-600 text-white shadow-glow">
@@ -260,19 +296,23 @@ function AppShell() {
 
         {/* Page Content */}
         <div className="mx-auto max-w-[1550px] p-5 sm:p-8">
-          <Routes>
-            <Route path="/" element={<Overview />} />
-            <Route path="/scan" element={<ScanWorkflow />} />
-            <Route path="/groups" element={<GroupsPage />} />
-            <Route path="/groups/:groupId" element={<ReviewPage />} />
-            <Route path="/images" element={<GroupsPage filter="image" />} />
-            <Route path="/documents" element={<GroupsPage filter="document" />} />
-            <Route path="/quarantine" element={<QuarantinePage />} />
-            <Route path="/history" element={<HistoryPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
+          <AnimatePresence mode="wait">
+            <motion.div key={location.pathname} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.18, ease: 'easeOut' }}>
+              <Routes>
+                <Route path="/" element={<Overview />} />
+                <Route path="/scan" element={<ScanWorkflow />} />
+                <Route path="/groups" element={<GroupsPage />} />
+                <Route path="/groups/:groupId" element={<ReviewPage />} />
+                <Route path="/images" element={<GroupsPage filter="image" />} />
+                <Route path="/documents" element={<GroupsPage filter="document" />} />
+                <Route path="/quarantine" element={<QuarantinePage />} />
+                <Route path="/history" element={<HistoryPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+              </Routes>
+            </motion.div>
+          </AnimatePresence>
         </div>
-      </main>
+      </div>
 
       {/* Global Cmd+K Search Modal */}
       {searchOpen && (
@@ -618,7 +658,7 @@ function RecoveryChart({ data }: { data: DashboardData }) {
         <div className="mt-6 flex items-center gap-2 border-t border-white/10 pt-4 text-xs text-slate-400">
           <Zap size={15} className="text-amber-400" />
           <span>
-            Reclaiming this space equates to approximately <strong className="text-white">4,620 high-res 24MP photos</strong>.
+            Reclaiming this space equates to approximately <strong className="text-white">{Math.round(data.recoverable / (3.2 * 1024 * 1024)).toLocaleString()} high-res photos</strong>.
           </span>
         </div>
       </div>
@@ -627,6 +667,7 @@ function RecoveryChart({ data }: { data: DashboardData }) {
 }
 
 function StorageBreakdown({ data }: { data: DashboardData }) {
+  const breakdown = data.storageBreakdown || []
   return (
     <Card className="p-6 sm:p-7 border-white/10 bg-slate-900/60">
       <SectionTitle eyebrow="Collection Analysis" title="Workspace File Taxonomy" />
@@ -635,12 +676,14 @@ function StorageBreakdown({ data }: { data: DashboardData }) {
         <div
           className="relative grid h-40 w-40 shrink-0 place-items-center rounded-full shadow-glow"
           style={{
-            background: `conic-gradient(#6366f1 0 58%, #a855f7 58% 85%, #06b6d4 85% 100%)`
+            background: breakdown.length > 0
+              ? `conic-gradient(#6366f1 0 ${breakdown[0]?.value || 50}%, #a855f7 ${breakdown[0]?.value || 50}% ${(breakdown[0]?.value || 50) + (breakdown[1]?.value || 30)}%, #06b6d4 ${(breakdown[0]?.value || 50) + (breakdown[1]?.value || 30)}% 100%)`
+              : 'rgba(99, 102, 241, 0.2)'
           }}
         >
           <div className="grid h-28 w-28 place-items-center rounded-full bg-slate-950 border border-white/10 shadow-inner">
             <div className="text-center">
-              <p className="text-xl font-bold text-white font-display">312 GB</p>
+              <p className="text-xl font-bold text-white font-display">{formatBytes(data.scannedSize)}</p>
               <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Total Scanned</p>
             </div>
           </div>
@@ -648,7 +691,7 @@ function StorageBreakdown({ data }: { data: DashboardData }) {
 
         {/* Legend */}
         <div className="flex-1 space-y-3 w-full">
-          {data.storageBreakdown.map(item => (
+          {breakdown.map(item => (
             <div key={item.name} className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-2.5 text-slate-300">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
@@ -661,11 +704,12 @@ function StorageBreakdown({ data }: { data: DashboardData }) {
       </div>
 
       <div className="mt-6 rounded-xl border border-indigo-500/20 bg-indigo-950/30 p-3.5 text-xs text-indigo-200/90 leading-relaxed">
-        <strong className="text-indigo-400 font-semibold">Smart Insight:</strong> Photos and media hold 58% of all reclaimable duplicates. Cleaning the top 10 image clusters reclaims 8.9 GB instantly.
+        <strong className="text-indigo-400 font-semibold">Smart Insight:</strong> {data.duplicateFiles.toLocaleString()} duplicate files identified across {data.duplicateGroups.toLocaleString()} clusters.
       </div>
     </Card>
   )
 }
+
 
 function RecentGroups() {
   const { data = [] } = useQuery({ queryKey: ['groups'], queryFn: fetchGroups })
@@ -796,10 +840,12 @@ function PipelineCard({ onRefresh }: { onRefresh: () => void }) {
 /* ========================================================================== */
 function GroupsPage({ filter }: { filter?: 'image' | 'document' } = {}) {
   const { data = [], isLoading } = useQuery({ queryKey: ['groups'], queryFn: fetchGroups })
+  const { pushToast } = useToast()
   const [tab, setTab] = useState('All')
   const [search, setSearch] = useState('')
   const [inspectImageGroup, setInspectImageGroup] = useState<DuplicateGroup | null>(null)
   const [inspectDocGroup, setInspectDocGroup] = useState<DuplicateGroup | null>(null)
+  const [autoSelected, setAutoSelected] = useState(false)
 
   const filtered = useMemo(() => {
     return data
@@ -861,11 +907,15 @@ function GroupsPage({ filter }: { filter?: 'image' | 'document' } = {}) {
           <Button
             size="sm"
             disabled={!filtered.length}
-            onClick={() => alert(`Auto-selected non-master files across ${filtered.length} groups for safe quarantine.`)}
-            className="bg-indigo-600 text-white shadow-glow"
+            onClick={() => {
+              setAutoSelected(current => !current)
+              pushToast(autoSelected ? 'Selection cleared. Your files are untouched.' : `Selected the non-master copies across ${filtered.length} groups. Nothing is deleted yet.`, 'info')
+            }}
+            aria-pressed={autoSelected}
+            className={autoSelected ? 'bg-emerald-500 text-slate-950 shadow-glow-emerald' : 'bg-indigo-600 text-white shadow-glow'}
           >
-            <Sparkles size={14} />
-            <span>Select All Non-Masters</span>
+            {autoSelected ? <CheckCircle2 size={14} /> : <Sparkles size={14} />}
+            <span>{autoSelected ? 'Non-Masters Selected' : 'Select All Non-Masters'}</span>
           </Button>
         </div>
       </div>
@@ -876,6 +926,7 @@ function GroupsPage({ filter }: { filter?: 'image' | 'document' } = {}) {
           <button
             key={item}
             onClick={() => setTab(item)}
+            aria-pressed={tab === item}
             className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
               tab === item
                 ? 'bg-indigo-600 text-white shadow-glow'
@@ -1097,6 +1148,7 @@ function ReviewPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [inspectModalOpen, setInspectModalOpen] = useState(false)
   const [docDiffOpen, setDocDiffOpen] = useState(false)
+  const { pushToast } = useToast()
 
   // Preselect all non-master files by default for quick quarantine
   useEffect(() => {
@@ -1109,7 +1161,7 @@ function ReviewPage() {
   const mutation = useMutation({
     mutationFn: quarantineFile,
     onSuccess: () => {
-      alert(`Moved ${selectedIds.length} files to soft quarantine. You can restore anytime.`)
+      pushToast(`Moved ${selectedIds.length} files to quarantine. You can restore them anytime.`)
       navigate('/quarantine')
     }
   })
@@ -1363,13 +1415,14 @@ function ReviewPage() {
 function QuarantinePage() {
   const queryClient = useQueryClient()
   const { data: items = [], refetch } = useQuery<QuarantineItem[]>({ queryKey: ['quarantine'], queryFn: fetchQuarantine })
+  const { pushToast } = useToast()
 
   const totalBytes = items.reduce((sum: number, item: QuarantineItem) => sum + item.size, 0)
 
   const handleRestore = async (id: string) => {
     await restoreFile(id)
     refetch()
-    alert('File restored successfully to its original folder location.')
+    pushToast('File restored to its original folder location.')
   }
 
 
@@ -1379,6 +1432,7 @@ function QuarantinePage() {
         await fetch(`/api/quarantine/${item.id}`, { method: 'DELETE' })
       }
       refetch()
+      pushToast('Quarantine emptied. Your selected files were permanently deleted.')
     }
   }
 
@@ -1428,7 +1482,7 @@ function QuarantinePage() {
                   await fetch(`/api/files/${item.id}/restore`, { method: 'POST' })
                 }
                 refetch()
-                alert('Restored all files to their original paths.')
+                pushToast('All quarantined files were restored to their original paths.')
               }}
               className="text-slate-300 border-white/10"
             >
@@ -1558,9 +1612,12 @@ function SettingsPage() {
   const [docThreshold, setDocThreshold] = useState(80)
   const [semanticThreshold, setSemanticThreshold] = useState(78)
   const [saved, setSaved] = useState(false)
+  const [masterPreference, setMasterPreference] = useState('Highest Quality')
+  const { pushToast } = useToast()
 
   const handleSave = () => {
     setSaved(true)
+    pushToast('Your matching preferences are saved for the next scan.')
     setTimeout(() => setSaved(false), 2500)
   }
 
@@ -1652,15 +1709,16 @@ function SettingsPage() {
             ].map((item, i) => (
               <button
                 key={item.title}
+                onClick={() => setMasterPreference(item.title)}
                 className={`rounded-xl border p-4 text-left transition-all ${
-                  i === 0
+                  masterPreference === item.title
                     ? 'border-indigo-500/80 bg-indigo-950/30 text-white shadow-glow'
                     : 'border-white/10 bg-slate-950/40 text-slate-400 hover:text-white'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-bold text-white">{item.title}</p>
-                  {i === 0 && (
+                  {masterPreference === item.title && (
                     <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[9px] font-bold text-indigo-300">
                       Default
                     </span>
@@ -1730,5 +1788,5 @@ function Loading() {
 }
 
 export default function App() {
-  return <AppShell />
+  return <ToastProvider><AppShell /></ToastProvider>
 }

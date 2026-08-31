@@ -1,5 +1,18 @@
 import { DashboardData, DuplicateGroup, ScanRecord, QuarantineItem } from '../types'
 
+const emptyDashboard: DashboardData = {
+  isDemo: false,
+  filesScanned: 0,
+  duplicateFiles: 0,
+  duplicateGroups: 0,
+  recoverable: 0,
+  recovered: 0,
+  scannedSize: 0,
+  storageBreakdown: [],
+  duplicateBreakdown: [],
+  recoveryByType: []
+}
+
 async function get<T>(path: string): Promise<T> {
   const response = await fetch(path)
   if (!response.ok) throw new Error(`Request failed: ${response.statusText}`)
@@ -7,20 +20,32 @@ async function get<T>(path: string): Promise<T> {
 }
 
 export async function fetchDashboard(): Promise<DashboardData> {
-  return await get('/api/dashboard')
+  try {
+    return await get<DashboardData>('/api/dashboard')
+  } catch {
+    return emptyDashboard
+  }
 }
 
 export async function fetchGroups(): Promise<DuplicateGroup[]> {
-  return await get('/api/duplicate-groups')
+  try {
+    return await get<DuplicateGroup[]>('/api/duplicate-groups')
+  } catch {
+    return []
+  }
 }
 
 export async function fetchHistory(): Promise<ScanRecord[]> {
-  return await get('/api/history')
+  try {
+    return await get<ScanRecord[]>('/api/history')
+  } catch {
+    return []
+  }
 }
 
 export async function fetchQuarantine(): Promise<QuarantineItem[]> {
   try {
-    return await get('/api/quarantine')
+    return await get<QuarantineItem[]>('/api/quarantine')
   } catch {
     return []
   }
@@ -32,7 +57,7 @@ export async function fetchScanProgress(id: string) {
   )
 }
 
-export async function startScan(payload: { name: string; fileCount: number; totalSize: number; files?: File[] }) {
+export async function startScan(payload: { name: string; fileCount: number; totalSize: number; files?: File[]; root_path?: string }) {
   if (payload.files?.length) {
     const body = new FormData()
     body.append('name', payload.name)

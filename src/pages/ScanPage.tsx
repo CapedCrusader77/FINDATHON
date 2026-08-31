@@ -1,129 +1,130 @@
 import React, { useState, useEffect } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   FolderOpen,
   Upload,
-  HardDrive,
-  ShieldCheck,
   Zap,
-  Sparkles,
-  RefreshCw,
-  ArrowUpRight,
   CheckCircle2,
+  AlertTriangle,
+  ArrowUpRight,
+  ShieldCheck,
+  Cpu,
+  Layers,
+  Sparkles,
+  HardDrive,
   FileText,
   Image as ImageIcon,
-  Layers,
-  Cpu,
-  Lock,
-  Search,
+  Clock,
   Terminal,
-  Clock
+  RefreshCw
 } from 'lucide-react'
-import { Button, Card, Badge } from '../components/ui'
-import { fetchScanProgress, startScan } from '../lib/api'
+import { startScan, fetchScanProgress } from '../lib/api'
 import { formatBytes } from '../lib/utils'
+import { Card, SectionTitle, Button, Badge } from '../components/ui'
+import { useToast } from '../components/Toast'
 
-interface LiveLogItem {
+interface FileLog {
   id: string
   file: string
   size: string
   stage: string
-  status: 'hashed' | 'analyzed' | 'clustered'
+  status: string
 }
 
 export default function ScanWorkflow() {
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const { pushToast } = useToast()
+
+  const [activeMode, setActiveMode] = useState<'upload' | 'local'>('upload')
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null)
   const [localPathInput, setLocalPathInput] = useState('')
-  const [activeTab, setActiveTab] = useState<'upload' | 'local_path'>('upload')
-  const [scanId, setScanId] = useState<string>()
-  const [simulatedProgress, setSimulatedProgress] = useState(0)
-  const [simulatedPhase, setSimulatedPhase] = useState<'idle' | 'discovering' | 'hashing' | 'analyzing' | 'clustering' | 'complete'>('idle')
-  const [logs, setLogs] = useState<LiveLogItem[]>([])
+  const [scanId, setScanId] = useState<string | null>(null)
+  const [logs, setLogs] = useState<FileLog[]>([])
+
+  const stages = [
+    { key: 'discovering', label: 'File Discovery', icon: FolderOpen, desc: 'Crawling tree structure' },
+    { key: 'hashing', label: 'SHA-256 Hashing', icon: Cpu, desc: 'Exact cryptographic pass' },
+    { key: 'analyzing', label: 'Vector Extraction', icon: Sparkles, desc: 'pHash & text embeddings' },
+    { key: 'clustering', label: 'Louvain Graphing', icon: Layers, desc: 'Master recommendation' }
+  ]
 
   const mutation = useMutation({
     mutationFn: startScan,
     onSuccess: result => {
       setScanId(result.id)
+      pushToast('Scan initiated. Analyzing duplicate candidates in background.', 'info')
+    },
+    onError: () => {
+      pushToast('Could not start scan. Please verify folder permissions.', 'error')
     }
   })
 
   const progressQuery = useQuery({
     queryKey: ['scan-progress', scanId],
     queryFn: () => fetchScanProgress(scanId!),
-    enabled: Boolean(scanId) && !scanId?.startsWith('demo-'),
-    refetchInterval: query => (query.state.data?.phase === 'complete' ? false : 800)
+    enabled: Boolean(scanId),
+    refetchInterval: query => {
+      if (query.state.data?.phase === 'complete') {
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+        queryClient.invalidateQueries({ queryKey: ['groups'] })
+        queryClient.invalidateQueries({ queryKey: ['history'] })
+        return false
+      }
+      return 600
+    }
   })
 
-  // Simulating responsive multi-stage pipeline if in demo/fallback mode
+  // Stream incoming file progress into the terminal log
   useEffect(() => {
-    if (mutation.isPending || (scanId && (scanId.startsWith('demo-') || !progressQuery.data))) {
-      setSimulatedPhase('discovering')
-      setSimulatedProgress(15)
-
-      const timer1 = setTimeout(() => {
-        setSimulatedPhase('hashing')
-        setSimulatedProgress(42)
-        setLogs(prev => [
-          { id: '1', file: 'DSC09482_Original_Master.jpg', size: '14.2 MB', stage: 'SHA-256', status: 'hashed' },
-          { id: '2', file: 'DSC09482_copy.jpg', size: '10.1 MB', stage: 'SHA-256', status: 'hashed' },
-          { id: '3', file: 'Q4_2025_Tax_Audit_Report.pdf', size: '17.1 MB', stage: 'SHA-256', status: 'hashed' },
-          ...prev
-        ])
-      }, 700)
-
-      const timer2 = setTimeout(() => {
-        setSimulatedPhase('analyzing')
-        setSimulatedProgress(74)
-        setLogs(prev => [
-          { id: '4', file: 'Proposal_v3_Final_Reviewed.docx', size: '4.8 MB', stage: 'MiniLM-L6 Embedding', status: 'analyzed' },
-          { id: '5', file: 'WhatsApp_Image_2025-08-15.jpg', size: '1.4 MB', stage: 'pHash & CLIP Vision', status: 'analyzed' },
-          ...prev
-        ])
-      }, 1500)
-
-      const timer3 = setTimeout(() => {
-        setSimulatedPhase('clustering')
-        setSimulatedProgress(92)
-        setLogs(prev => [
-          { id: '6', file: 'Cluster Graph #14 Formed', size: '4 files', stage: 'Louvain Clustering', status: 'clustered' },
-          { id: '7', file: 'Cluster Graph #15 Formed', size: '3 files', stage: 'Louvain Clustering', status: 'clustered' },
-          ...prev
-        ])
-      }, 2300)
-
-      const timer4 = setTimeout(() => {
-        setSimulatedPhase('complete')
-        setSimulatedProgress(100)
-      }, 3000)
-
-      return () => {
-        clearTimeout(timer1)
-        clearTimeout(timer2)
-        clearTimeout(timer3)
-        clearTimeout(timer4)
-      }
+    if (progressQuery.data?.current_file) {
+      const current = progressQuery.data.current_file
+      setLogs(prev => {
+        if (prev.some(l => l.file === current)) return prev
+        return [
+          {
+            id: Math.random().toString(),
+            file: current,
+            size: 'Analyzed',
+            stage: progressQuery.data?.phase || 'Processing',
+            status: 'success'
+          },
+          ...prev.slice(0, 49)
+        ]
+      })
     }
-  }, [mutation.isPending, scanId])
+  }, [progressQuery.data?.current_file, progressQuery.data?.phase])
 
-  const effectivePhase = scanId?.startsWith('demo-')
-    ? simulatedPhase
-    : (progressQuery.data?.phase as any) || simulatedPhase
-  const effectiveProgress = scanId?.startsWith('demo-')
-    ? simulatedProgress
-    : progressQuery.data?.total
+  const effectivePhase = (progressQuery.data?.phase as any) || (mutation.isPending ? 'discovering' : 'idle')
+  const effectiveProgress = progressQuery.data?.total
     ? Math.round((progressQuery.data.processed / progressQuery.data.total) * 100)
-    : simulatedProgress
+    : mutation.isPending
+    ? 15
+    : effectivePhase === 'complete'
+    ? 100
+    : 0
 
   const isScanning = mutation.isPending || (effectivePhase !== 'idle' && effectivePhase !== 'complete')
 
   const handleStartUploadScan = () => {
     if (!selectedFiles?.length) return
     const files = Array.from(selectedFiles)
+    
+    // Populate logs with real selected files
+    setLogs(
+      files.slice(0, 10).map((f, i) => ({
+        id: String(i),
+        file: f.name,
+        size: formatBytes(f.size),
+        stage: 'Ingesting',
+        status: 'queued'
+      }))
+    )
+
     mutation.mutate({
-      name: files[0].webkitRelativePath?.split('/')[0] || 'Selected Folder',
+      name: files[0].webkitRelativePath?.split('/')[0] || 'Uploaded Folder',
       fileCount: files.length,
       totalSize: files.reduce((acc, f) => acc + f.size, 0),
       files
@@ -135,165 +136,144 @@ export default function ScanWorkflow() {
     mutation.mutate({
       name: localPathInput.split(/[\\/]/).filter(Boolean).pop() || 'Local Directory',
       fileCount: 0,
-      totalSize: 0
+      totalSize: 0,
+      root_path: localPathInput.trim()
     })
   }
 
-  const stages = [
-    { key: 'discovering', label: '1. Discovery', desc: 'Recursive tree scan', icon: Search },
-    { key: 'hashing', label: '2. Exact Hash', desc: 'SHA-256 byte check', icon: Zap },
-    { key: 'analyzing', label: '3. Multi-Modal', desc: 'pHash + Embeddings', icon: Cpu },
-    { key: 'clustering', label: '4. Graph Cluster', desc: 'Louvain community', icon: Layers },
-  ]
-
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
-      {/* Top Hero */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2">
             <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-400">
-              Local-First AI Scanner
+              Multi-Modal Pipeline
             </p>
           </div>
           <h2 className="text-3xl font-extrabold tracking-tight text-white font-display">
-            Inspect & Deduplicate Workspace
+            Scan & Identify Duplicates
           </h2>
-          <p className="mt-2 text-xs sm:text-sm text-slate-400 max-w-2xl leading-relaxed">
-            Scan your photo libraries and document folders. DedupeIQ applies cryptographic hashing, perceptual image fingerprints, and NLP text embeddings with zero cloud uploads.
+          <p className="mt-1 text-xs sm:text-sm text-slate-400 max-w-2xl">
+            Choose a folder from your drive. DedupeIQ processes every file locally through SHA-256 cryptographic hashing, perceptual image fingerprints, and cross-format text embeddings.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-950/20 px-3.5 py-2 text-xs font-semibold text-emerald-300">
-          <ShieldCheck size={16} className="text-emerald-400" />
-          <span>100% Private Local Scan</span>
+        <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 border border-emerald-500/30 bg-emerald-950/20 px-3.5 py-2 rounded-xl">
+          <ShieldCheck size={16} /> 100% Local-First Engine
         </div>
       </div>
 
-      {/* Main Upload Card */}
-      <Card className="overflow-hidden border-white/10 bg-slate-900/80 shadow-2xl">
-        {/* Tab Headers */}
-        <div className="flex items-center justify-between border-b border-white/10 bg-slate-950/60 px-6 py-3">
-          <div className="flex items-center gap-2">
+      {/* Main Scan Config Card */}
+      <Card className="p-6 sm:p-8 border-white/10 bg-slate-900/70 shadow-2xl">
+        <div className="space-y-6">
+          {/* Mode Switcher */}
+          <div className="flex items-center gap-3 border-b border-white/10 pb-5">
             <button
-              onClick={() => setActiveTab('upload')}
-              className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
-                activeTab === 'upload'
+              onClick={() => setActiveMode('upload')}
+              className={`flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-xs font-bold transition-all ${
+                activeMode === 'upload'
                   ? 'bg-indigo-600 text-white shadow-glow'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
               }`}
             >
-              <Upload size={13} className="inline mr-1.5" /> Folder Upload / Dropzone
+              <Upload size={16} />
+              <span>Select Folder from Browser</span>
             </button>
+
             <button
-              onClick={() => setActiveTab('local_path')}
-              className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
-                activeTab === 'local_path'
+              onClick={() => setActiveMode('local')}
+              className={`flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-xs font-bold transition-all ${
+                activeMode === 'local'
                   ? 'bg-indigo-600 text-white shadow-glow'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
               }`}
             >
-              <HardDrive size={13} className="inline mr-1.5" /> Server Local Path
+              <HardDrive size={16} />
+              <span>Enter Local System Path</span>
             </button>
           </div>
 
-          <span className="text-[11px] text-slate-400 hidden sm:inline">
-            Supports JPG, PNG, WEBP, PDF, DOCX, PPTX, TXT
-          </span>
-        </div>
-
-        <div className="p-6 sm:p-8">
-          {activeTab === 'upload' ? (
-            <div>
+          {/* Mode 1: Browser Folder Selection */}
+          {activeMode === 'upload' && (
+            <div className="space-y-5">
               <label
-                className={`group relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-all p-10 text-center ${
-                  selectedFiles?.length
-                    ? 'border-indigo-500 bg-indigo-950/20'
-                    : 'border-white/15 bg-slate-950/40 hover:border-indigo-500/60 hover:bg-slate-900/60'
-                }`}
+                htmlFor="folder-upload"
+                className="group relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/15 bg-slate-950/50 p-8 sm:p-12 text-center hover:border-indigo-500/50 hover:bg-slate-900/60 transition-all cursor-pointer"
               >
                 <input
+                  id="folder-upload"
                   type="file"
-                  className="hidden"
+                  // @ts-ignore
+                  webkitdirectory=""
+                  directory=""
                   multiple
-                  {...({ webkitdirectory: 'true' } as React.InputHTMLAttributes<HTMLInputElement>)}
                   onChange={e => setSelectedFiles(e.target.files)}
+                  className="hidden"
                 />
 
-                <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-glow transition-transform group-hover:scale-105">
-                  <FolderOpen size={28} />
+                <div className="grid h-16 w-16 place-items-center rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-glow">
+                  <FolderOpen size={30} />
                 </div>
 
-                <h4 className="mt-4 text-base font-bold text-white">
+                <h3 className="mt-4 text-base font-bold text-white">
                   {selectedFiles?.length
-                    ? `${selectedFiles.length} files loaded and ready to analyze`
-                    : 'Select or Drop a Personal Folder'}
-                </h4>
-                <p className="mt-1.5 text-xs text-slate-400 max-w-md">
-                  Click to browse your desktop directories. DedupeIQ will analyze all subdirectories recursively.
+                    ? `${selectedFiles.length} files selected in "${selectedFiles[0].webkitRelativePath?.split('/')[0] || 'folder'}"`
+                    : 'Click to select a folder from your computer'}
+                </h3>
+
+                <p className="mt-1 text-xs text-slate-400 max-w-md">
+                  Supports all standard photos (JPEG, PNG, WebP, HEIC, RAW) and documents (DOCX, PDF, TXT, MD).
                 </p>
 
-                <div className="mt-5 flex items-center gap-2">
-                  <span className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-indigo-500">
-                    Browse Folder
-                  </span>
-                  {selectedFiles?.length && (
-                    <span className="text-xs text-indigo-300 font-semibold">
-                      Total: {formatBytes(Array.from(selectedFiles).reduce((s, f) => s + f.size, 0))}
+                {selectedFiles && (
+                  <div className="mt-4 flex items-center gap-3">
+                    <Badge tone="purple">{selectedFiles.length} Files Ready</Badge>
+                    <span className="text-xs text-slate-400 font-mono">
+                      {formatBytes(Array.from(selectedFiles).reduce((acc, f) => acc + f.size, 0))} Total
                     </span>
-                  )}
-                </div>
+                  </div>
+                )}
               </label>
 
-              <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
                 <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <Lock size={14} className="text-emerald-400" />
-                  <span>Files are processed in memory and never modified without user consent.</span>
+                  <Sparkles size={14} className="text-indigo-400" />
+                  <span>Files remain on your local disk. No external cloud upload.</span>
                 </div>
 
                 <Button
-                  size="md"
+                  size="lg"
                   disabled={!selectedFiles?.length || isScanning}
                   onClick={handleStartUploadScan}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-glow px-6"
+                  className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white shadow-glow px-8"
                 >
-                  {isScanning ? <RefreshCw size={15} className="animate-spin" /> : <Zap size={15} />}
-                  {isScanning ? 'Analyzing Files...' : 'Run Intelligent Scan'}
+                  {isScanning ? <RefreshCw size={16} className="animate-spin" /> : <Zap size={16} />}
+                  <span>{isScanning ? 'Analyzing Files...' : 'Start Deduplication Scan'}</span>
+                  <ArrowUpRight size={16} />
                 </Button>
               </div>
             </div>
-          ) : (
-            /* Local Path Input Mode */
+          )}
+
+          {/* Mode 2: Local Server Path Input */}
+          {activeMode === 'local' && (
             <div className="space-y-5">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-2">
-                  Absolute Directory Path on Disk
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-300">
+                  Absolute Directory Path on Server / Machine
                 </label>
-                <div className="flex items-center gap-2 rounded-xl border border-white/15 bg-slate-950 px-4 py-3">
-                  <HardDrive size={16} className="text-indigo-400" />
+                <div className="flex items-center rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm focus-within:border-indigo-500 transition-colors">
+                  <FolderOpen size={18} className="text-indigo-400 mr-3 shrink-0" />
                   <input
                     type="text"
                     value={localPathInput}
                     onChange={e => setLocalPathInput(e.target.value)}
-                    placeholder="e.g. C:\Users\YourName\Pictures or /Users/yourname/Documents"
+                    placeholder="e.g. E:\Projects\FINDATHON or C:\Users\YourName\Pictures"
                     className="flex-1 bg-transparent text-sm text-white placeholder-slate-500 outline-none font-mono"
                   />
                 </div>
-              </div>
-
-              {/* Sample Quick Paths */}
-              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-                <span>Quick demo paths:</span>
-                {['E:\\Projects\\FINDATHON', 'C:\\Users\\Gokul.A\\Pictures', '/Users/Shared/Downloads'].map(p => (
-                  <button
-                    key={p}
-                    onClick={() => setLocalPathInput(p)}
-                    className="rounded-md border border-white/10 bg-slate-800 px-2 py-1 text-[11px] text-slate-300 hover:border-indigo-400 hover:text-white"
-                  >
-                    {p}
-                  </button>
-                ))}
               </div>
 
               <div className="flex justify-end pt-2">
@@ -341,7 +321,7 @@ export default function ScanWorkflow() {
                 </h3>
                 <p className="mt-1 text-xs text-slate-400">
                   {effectivePhase === 'complete'
-                    ? '14.8 GB of potential space savings discovered across 346 duplicate clusters.'
+                    ? 'All duplicate candidate clusters have been evaluated and stored in your database.'
                     : `Processing candidate queue: ${effectiveProgress}% completed.`}
                 </p>
               </div>
@@ -409,7 +389,7 @@ export default function ScanWorkflow() {
                   <div>
                     <h4 className="text-sm font-bold text-white">Cluster Analysis Complete</h4>
                     <p className="text-xs text-emerald-200/80">
-                      Identified 346 duplicate groups with master file recommendations.
+                      Duplicate clusters and master recommendations are ready to review.
                     </p>
                   </div>
                 </div>
