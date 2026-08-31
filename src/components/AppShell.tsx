@@ -211,20 +211,6 @@ export default function AppShell({ children }: AppShellProps) {
           </div>
         </div>
 
-        {/* About / Landing Page link */}
-        {!collapsed && (
-          <div className="px-3 pb-2">
-            <Link
-              to="/landing"
-              className="flex items-center gap-2 rounded-xl px-3 py-2 text-[10px] font-semibold text-slate-500 hover:text-brand-300 hover:bg-brand-500/8 transition-colors border border-transparent hover:border-brand-500/20"
-            >
-              <span className="text-sm">🌐</span>
-              <span>View Landing Page</span>
-              <ChevronRight size={11} className="ml-auto" />
-            </Link>
-          </div>
-        )}
-
         {/* User Footer Profile */}
         <div className="border-t border-[#292d32] p-3 bg-black/10">
           <div className="flex items-center justify-between rounded-xl p-2 hover:bg-white/[0.045] transition-colors">

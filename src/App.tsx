@@ -2,7 +2,6 @@ import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ToastProvider } from './components/Toast'
-import LandingPage from './pages/LandingPage'
 import AuthPage from './pages/AuthPage'
 import AppShell from './components/AppShell'
 import OverviewPage from './pages/OverviewPage'
@@ -18,14 +17,13 @@ function AuthenticatedApp() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-xs text-slate-400 font-mono bg-[#0a0c13]">
+      <div className="min-h-screen flex items-center justify-center text-xs text-slate-400 font-mono bg-[#0f1012]">
         Initializing workspace session...
       </div>
     )
   }
 
   if (!isAuthenticated) {
-    // Show login, then redirect back to /dashboard
     return <AuthPage />
   }
 
@@ -51,13 +49,7 @@ export default function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        <Routes>
-          {/* Public landing page — visible to everyone including judges */}
-          <Route path="/landing" element={<LandingPage />} />
-
-          {/* All app routes (login gated) — original paths preserved */}
-          <Route path="/*" element={<AuthenticatedApp />} />
-        </Routes>
+        <AuthenticatedApp />
       </ToastProvider>
     </AuthProvider>
   )
