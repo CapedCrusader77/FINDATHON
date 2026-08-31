@@ -47,10 +47,20 @@ import {
   Zap
 } from 'lucide-react'
 import { Button, Badge, Card, SectionTitle } from './components/ui'
-import { fetchDashboard, fetchGroups, fetchHistory, fetchScanProgress, quarantineFile, startScan } from './lib/api'
+import {
+  fetchDashboard,
+  fetchGroups,
+  fetchHistory,
+  fetchQuarantine,
+  fetchScanProgress,
+  quarantineFile,
+  restoreFile,
+  deleteQuarantinedFile,
+  startScan
+} from './lib/api'
 import { formatBytes, formatDate } from './lib/utils'
-import { DashboardData, DuplicateGroup, ScanRecord, FileRecord } from './types'
-import { demoGroups, demoDashboard, demoHistory, demoQuarantine } from './data/demo'
+import { DashboardData, DuplicateGroup, ScanRecord, FileRecord, QuarantineItem } from './types'
+
 import ScanWorkflow from './pages/ScanPage'
 import MiniRecoveryChart from './components/MiniRecoveryChart'
 import ImageCompareModal from './components/ImageCompareModal'
@@ -88,8 +98,7 @@ function AppShell() {
   const [searchQuery, setSearchQuery] = useState('')
   const location = useLocation()
   const navigate = useNavigate()
-
-  const { data: groups = demoGroups } = useQuery({ queryKey: ['groups'], queryFn: fetchGroups })
+  const { data: groups = [] } = useQuery<DuplicateGroup[]>({ queryKey: ['groups'], queryFn: fetchGroups })
 
   const pageTitle =
     location.pathname === '/'
@@ -368,12 +377,93 @@ function SideLink({
 /* OVERVIEW PAGE                                                              */
 /* ========================================================================== */
 function Overview() {
-  const { data = demoDashboard, isLoading, refetch } = useQuery({
+  const queryClient = useQueryClient()
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['dashboard'],
     queryFn: fetchDashboard
   })
 
   if (isLoading || !data) return <Loading />
+
+  // If database is completely empty (0 files scanned)
+  if (data.filesScanned === 0) {
+    return (
+      <div className="space-y-8">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-2">
+          <div>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex h-2.5 w-2.5 rounded-full bg-indigo-500 animate-pulse" />
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                Connected to MongoDB Atlas
+              </span>
+            </div>
+            <h2 className="max-w-2xl text-3xl sm:text-4xl font-extrabold tracking-tight text-white font-display leading-tight">
+              Ready to Clean & Organize Your Personal Files.
+            </h2>
+            <p className="mt-2.5 max-w-2xl text-xs sm:text-sm text-slate-400 leading-relaxed">
+              Your database is connected and ready. Choose a folder on your computer to detect exact bit-for-bit copies, resized camera photos, and cross-format document drafts.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link to="/scan">
+              <Button size="lg" className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-glow">
+                <FolderOpen size={17} />
+                <span>Start First Scan</span>
+                <ArrowUpRight size={16} />
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Empty State Action Card */}
+        <Card className="p-8 sm:p-12 text-center border-dashed border-white/20 bg-slate-900/40">
+          <div className="mx-auto max-w-lg">
+            <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-glow">
+              <FolderOpen size={28} />
+            </div>
+            <h3 className="mt-5 text-xl font-bold text-white">No Files Scanned Yet</h3>
+            <p className="mt-2 text-xs sm:text-sm text-slate-400 leading-relaxed">
+              Upload a folder of images or documents to analyze perceptual hashes, cosine embeddings, and duplicate clusters.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <Link to="/scan">
+                <Button size="md" className="bg-indigo-600 text-white shadow-glow">
+                  <FolderOpen size={15} /> Select Folder to Scan
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </Card>
+
+        {/* Pipeline Explainer */}
+        <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <PipelineCard onRefresh={refetch} />
+          <Card className="p-6 sm:p-7 border-white/10 bg-slate-900/60 flex flex-col justify-between">
+            <SectionTitle
+              eyebrow="Privacy Guarantee"
+              title="100% Local-First Execution"
+              subtitle="Files stay on your machine."
+            />
+            <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
+              <p>
+                ✓ All cryptographic SHA-256 hashes and perceptual image fingerprints run inside your local Python service.
+              </p>
+              <p>
+                ✓ MongoDB stores only metadata, cluster links, and similarity scores.
+              </p>
+              <p>
+                ✓ Safe soft-quarantine prevents accidental loss before permanent removal.
+              </p>
+            </div>
+            <div className="mt-6 flex items-center gap-2 text-xs text-emerald-400 font-semibold border-t border-white/5 pt-4">
+              <ShieldCheck size={16} /> MongoDB Atlas connection active
+            </div>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
@@ -383,9 +473,8 @@ function Overview() {
           <div className="mb-3 flex items-center gap-2">
             <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-              Continuous Deduplication Engine Active
+              Live Database Connected
             </span>
-            {data.isDemo && <Badge tone="purple">Rich Verified Corpus</Badge>}
           </div>
           <h2 className="max-w-2xl text-3xl sm:text-4xl font-extrabold tracking-tight text-white font-display leading-tight">
             Reclaim Space Without Losing Important Files.
@@ -426,6 +515,7 @@ function Overview() {
     </div>
   )
 }
+
 
 function MetricGrid({ data }: { data: DashboardData }) {
   const metrics = [
@@ -578,7 +668,26 @@ function StorageBreakdown({ data }: { data: DashboardData }) {
 }
 
 function RecentGroups() {
-  const { data = demoGroups } = useQuery({ queryKey: ['groups'], queryFn: fetchGroups })
+  const { data = [] } = useQuery({ queryKey: ['groups'], queryFn: fetchGroups })
+
+  if (!data.length) {
+    return (
+      <Card className="p-6 sm:p-7 border-white/10 bg-slate-900/60">
+        <SectionTitle
+          eyebrow="Prioritized Actions"
+          title="Duplicate Clusters"
+          action={
+            <Link to="/scan" className="flex items-center gap-1 text-xs font-bold text-indigo-400 hover:text-indigo-300">
+              Run Scan <ChevronRight size={14} />
+            </Link>
+          }
+        />
+        <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-xs text-slate-400">
+          No duplicate clusters detected yet. Start a scan to surface near-duplicate candidates.
+        </div>
+      </Card>
+    )
+  }
 
   return (
     <Card className="p-6 sm:p-7 border-white/10 bg-slate-900/60">
@@ -615,7 +724,7 @@ function RecentGroups() {
                 <p className="truncate text-xs font-bold text-white group-hover:text-indigo-300 transition-colors">
                   {group.title}
                 </p>
-                <Badge tone={toneFor(group.type)}>{group.similarity}% Match</Badge>
+                <Badge tone={toneFor(group.type)}>{group.type}</Badge>
               </div>
               <p className="mt-1 text-[11px] text-slate-400 truncate">
                 {group.files.length} copies · {group.explanation}
@@ -686,7 +795,7 @@ function PipelineCard({ onRefresh }: { onRefresh: () => void }) {
 /* GROUPS PAGE                                                                */
 /* ========================================================================== */
 function GroupsPage({ filter }: { filter?: 'image' | 'document' } = {}) {
-  const { data = demoGroups, isLoading } = useQuery({ queryKey: ['groups'], queryFn: fetchGroups })
+  const { data = [], isLoading } = useQuery({ queryKey: ['groups'], queryFn: fetchGroups })
   const [tab, setTab] = useState('All')
   const [search, setSearch] = useState('')
   const [inspectImageGroup, setInspectImageGroup] = useState<DuplicateGroup | null>(null)
@@ -751,6 +860,7 @@ function GroupsPage({ filter }: { filter?: 'image' | 'document' } = {}) {
 
           <Button
             size="sm"
+            disabled={!filtered.length}
             onClick={() => alert(`Auto-selected non-master files across ${filtered.length} groups for safe quarantine.`)}
             className="bg-indigo-600 text-white shadow-glow"
           >
@@ -798,8 +908,8 @@ function GroupsPage({ filter }: { filter?: 'image' | 'document' } = {}) {
       ) : (
         <EmptyState
           title="No duplicate candidates match this filter."
-          body="Try adjusting your search keywords or switching to a broader category tab."
-          action="Scan Another Folder"
+          body="Your scanned files contain no duplicates under this category, or you haven't scanned a folder yet."
+          action="Scan a Folder"
         />
       )}
 
@@ -981,7 +1091,7 @@ function GroupCard({
 function ReviewPage() {
   const { groupId } = useParams()
   const navigate = useNavigate()
-  const { data = demoGroups } = useQuery({ queryKey: ['groups'], queryFn: fetchGroups })
+  const { data = [] } = useQuery({ queryKey: ['groups'], queryFn: fetchGroups })
   const group = data.find(g => g.id === groupId) || data[0]
 
   const [selectedIds, setSelectedIds] = useState<string[]>([])
@@ -1004,7 +1114,7 @@ function ReviewPage() {
     }
   })
 
-  if (!group) return <EmptyState title="Group not found" body="This duplicate cluster has been resolved." />
+  if (!group) return <EmptyState title="Group not found" body="This duplicate cluster has been resolved or does not exist." action="Back to Groups" />
 
   const masterFile = group.files.find(f => f.isRecommended) || group.files[0]
   const isImage = group.type === 'Near image' || group.category === 'image'
@@ -1251,18 +1361,24 @@ function ReviewPage() {
 /* QUARANTINE PAGE                                                            */
 /* ========================================================================== */
 function QuarantinePage() {
-  const [items, setItems] = useState(demoQuarantine)
+  const queryClient = useQueryClient()
+  const { data: items = [], refetch } = useQuery<QuarantineItem[]>({ queryKey: ['quarantine'], queryFn: fetchQuarantine })
 
-  const totalBytes = items.reduce((sum, item) => sum + item.size, 0)
+  const totalBytes = items.reduce((sum: number, item: QuarantineItem) => sum + item.size, 0)
 
-  const handleRestore = (id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id))
+  const handleRestore = async (id: string) => {
+    await restoreFile(id)
+    refetch()
     alert('File restored successfully to its original folder location.')
   }
 
-  const handleEmptyQuarantine = () => {
+
+  const handleEmptyQuarantine = async () => {
     if (window.confirm('Permanently wipe all quarantined files? This action cannot be undone.')) {
-      setItems([])
+      for (const item of items) {
+        await fetch(`/api/quarantine/${item.id}`, { method: 'DELETE' })
+      }
+      refetch()
     }
   }
 
@@ -1307,8 +1423,11 @@ function QuarantinePage() {
             <Button
               variant="outline"
               size="xs"
-              onClick={() => {
-                setItems([])
+              onClick={async () => {
+                for (const item of items) {
+                  await fetch(`/api/files/${item.id}/restore`, { method: 'POST' })
+                }
+                refetch()
                 alert('Restored all files to their original paths.')
               }}
               className="text-slate-300 border-white/10"
@@ -1368,7 +1487,7 @@ function QuarantinePage() {
 /* HISTORY PAGE                                                               */
 /* ========================================================================== */
 function HistoryPage() {
-  const { data = demoHistory } = useQuery({ queryKey: ['history'], queryFn: fetchHistory })
+  const { data = [] } = useQuery({ queryKey: ['history'], queryFn: fetchHistory })
 
   return (
     <div className="space-y-7">
@@ -1397,32 +1516,39 @@ function HistoryPage() {
         </div>
 
         <div className="divide-y divide-white/5">
-          {data.map((scan: ScanRecord) => (
-            <div
-              key={scan.id}
-              className="grid gap-3 px-6 py-4.5 sm:grid-cols-[1.5fr_0.8fr_0.8fr_0.8fr_0.9fr] sm:items-center hover:bg-white/[0.02] transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
-                  <FolderOpen size={18} />
+          {data.length ? (
+            data.map((scan: ScanRecord) => (
+              <div
+                key={scan.id}
+                className="grid gap-3 px-6 py-4.5 sm:grid-cols-[1.5fr_0.8fr_0.8fr_0.8fr_0.9fr] sm:items-center hover:bg-white/[0.02] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
+                    <FolderOpen size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white">{scan.name}</p>
+                    <p className="text-[11px] text-slate-400">{formatBytes(scan.size)} analyzed</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-white">{scan.name}</p>
-                  <p className="text-[11px] text-slate-400">{formatBytes(scan.size)} analyzed</p>
-                </div>
-              </div>
 
-              <span className="text-xs text-slate-300 font-mono">{scan.files.toLocaleString()} files</span>
-              <span className="text-xs text-indigo-300 font-semibold">{scan.groups} clusters</span>
-              <span className="text-xs font-bold text-emerald-400 font-mono">{formatBytes(scan.recovered)}</span>
-              <span className="text-xs text-slate-400">{formatDate(scan.date)}</span>
+                <span className="text-xs text-slate-300 font-mono">{scan.files.toLocaleString()} files</span>
+                <span className="text-xs text-indigo-300 font-semibold">{scan.groups} clusters</span>
+                <span className="text-xs font-bold text-emerald-400 font-mono">{formatBytes(scan.recovered)}</span>
+                <span className="text-xs text-slate-400">{formatDate(scan.date)}</span>
+              </div>
+            ))
+          ) : (
+            <div className="p-8 text-center text-xs text-slate-400">
+              No previous scan activity recorded yet.
             </div>
-          ))}
+          )}
         </div>
       </Card>
     </div>
   )
 }
+
 
 /* ========================================================================== */
 /* SETTINGS PAGE                                                              */
