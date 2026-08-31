@@ -38,13 +38,13 @@ const navItems = [
   { to: '/scan', label: 'Intelligent Scan', icon: FolderOpen },
   { to: '/groups', label: 'Duplicate Groups', icon: CopyIcon },
   { to: '/images', label: 'Image Duplicates', icon: ImageIcon },
-  { to: '/documents', label: 'Document Revisions', icon: FileText }
+  { to: '/documents', label: 'Document Versions', icon: FileText }
 ]
 
 const managementItems = [
   { to: '/quarantine', label: 'Quarantine Bin', icon: Archive },
   { to: '/history', label: 'Scan History', icon: Clock3 },
-  { to: '/settings', label: 'Algorithm Settings', icon: Sliders }
+  { to: '/settings', label: 'Detection Settings', icon: Sliders }
 ]
 
 export default function AppShell({ children }: AppShellProps) {
@@ -120,12 +120,12 @@ export default function AppShell({ children }: AppShellProps) {
               <Sparkles size={16} strokeWidth={2.5} />
             </div>
             {!collapsed && (
-              <div className="truncate">
+              <div className="truncate flex items-center">
                 <span className="font-display font-bold text-[0.92rem] tracking-tight text-white">
                   Dedupe<span className="text-brand-400">IQ</span>
                 </span>
-                <span className="ml-2 rounded-full border border-white/10 px-1.5 py-0.5 text-[8px] uppercase font-mono tracking-wider text-slate-400">
-                  local
+                <span className="ml-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[8.5px] font-mono text-emerald-300">
+                  🔒 Processed Locally
                 </span>
               </div>
             )}

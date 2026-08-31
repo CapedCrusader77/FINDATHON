@@ -78,10 +78,10 @@ export default function DuplicateGroupsPage({ filter }: { filter?: 'image' | 'do
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1e2230] pb-5">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-white font-display">
-            {filter === 'image' ? 'Image Duplicate Clusters' : filter === 'document' ? 'Document Revisions & Drafts' : 'Duplicate Groups & Clusters'}
+            {filter === 'image' ? 'Image Duplicate Groups' : filter === 'document' ? 'Document Versions & Drafts' : 'Duplicate Groups'}
           </h2>
           <p className="mt-0.5 text-xs text-slate-400">
-            Algorithmic duplicate clusters with explainable matching reasons and master copy recommendations.
+            Intelligently grouped duplicates with explainable matching reasons and recommended master copies.
           </p>
         </div>
 
@@ -119,7 +119,7 @@ export default function DuplicateGroupsPage({ filter }: { filter?: 'image' | 'do
             <Search size={13} className="absolute left-2.5 top-2.5 text-slate-500" />
             <input
               type="text"
-              placeholder="Filter clusters..."
+              placeholder="Filter duplicate groups..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full rounded-md border border-[#272d3f] bg-[#0c0e14] pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-brand-500"
@@ -141,18 +141,18 @@ export default function DuplicateGroupsPage({ filter }: { filter?: 'image' | 'do
       {/* Summary Stat Strip */}
       <div className="flex items-center justify-between text-xs text-slate-400 px-1">
         <span>
-          Showing <strong className="text-white font-mono">{filtered.length}</strong> duplicate clusters
+          Showing <strong className="text-white font-mono">{filtered.length}</strong> duplicate groups
         </span>
         <span>
           Potential Recovery: <strong className="text-emerald-400 font-mono">{formatBytes(totalRecoverable)}</strong>
         </span>
       </div>
 
-      {/* Cluster List */}
+      {/* Group List */}
       {isLoading ? (
         <div className="flex h-48 items-center justify-center text-xs text-slate-400 font-mono">
           <RefreshCw size={14} className="animate-spin text-brand-400 mr-2" />
-          Loading duplicate clusters...
+          Loading duplicate groups...
         </div>
       ) : filtered.length > 0 ? (
         <div className="space-y-4">
@@ -167,7 +167,7 @@ export default function DuplicateGroupsPage({ filter }: { filter?: 'image' | 'do
         </div>
       ) : (
         <Card className="p-8 text-center bg-[#11141d] border-[#1e2230]">
-          <p className="text-sm font-bold text-white">No duplicate clusters found</p>
+          <p className="text-sm font-bold text-white">No duplicate groups found</p>
           <p className="mt-1 text-xs text-slate-400">
             {search.trim() || tab !== 'All'
               ? 'No duplicates match the current filters. Try changing keywords or category tab.'
@@ -321,7 +321,7 @@ function GroupRowCard({
 
           <Link to={`/groups/${group.id}`}>
             <Button size="sm" className="bg-brand-600 hover:bg-brand-500 text-white text-xs h-7.5">
-              <span>Review Cluster</span>
+              <span>Review Group</span>
               <ChevronRight size={13} />
             </Button>
           </Link>

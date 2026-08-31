@@ -123,11 +123,11 @@ export default function RecoverySimulator({ data, onApplyPolicy }: RecoverySimul
             </div>
 
             <div className="rounded-lg border border-[#1e2230] bg-[#161922] p-3">
-              <p className="text-[10px] font-medium text-slate-400">Cloud Value</p>
+              <p className="text-[10px] font-medium text-slate-400">Target Files</p>
               <p className="mt-0.5 text-base font-bold text-amber-300 font-mono">
-                -${cloudCostSavings}/mo
+                {Math.round(data.duplicateFiles * (factor > 1 ? 0.95 : factor))}
               </p>
-              <p className="text-[9px] text-slate-500 mt-0.5">Storage offset</p>
+              <p className="text-[9px] text-slate-500 mt-0.5">Candidate copies</p>
             </div>
           </div>
         </div>

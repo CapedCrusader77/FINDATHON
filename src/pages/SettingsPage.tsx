@@ -82,10 +82,10 @@ export default function SettingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1e2230] pb-5">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-white font-display">
-            Algorithm & Sensitivity Settings
+            Detection & Sensitivity Settings
           </h2>
           <p className="mt-0.5 text-xs text-slate-400">
-            Tune algorithmic detection thresholds for perceptual image hashing, text n-grams, and Louvain clustering.
+            Tune detection thresholds for perceptual image hashing, text n-grams, and Louvain clustering.
           </p>
         </div>
 
